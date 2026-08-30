@@ -1,0 +1,126 @@
+{
+  "audit_version": "1.0",
+  "generated_at": "2026-08-29",
+  "sources": [
+    "docs/api-contract.openapi.yaml",
+    "agent-input/api-contract.openapi.yaml",
+    "api/app/main.py",
+    "api/app/models.py",
+    "api/app/store.py",
+    "api/app/prob.py",
+    "api/tests/test_api.py",
+    "agent-input/cases.json",
+    "eval/expected-paths.json"
+  ],
+  "summary": {
+    "endpoints": 18,
+    "read_operations": 13,
+    "action_operations": 5,
+    "context_category": 4,
+    "investigation_category": 9,
+    "action_category": 5,
+    "support_cases": 17,
+    "test_scenarios": 16,
+    "candidate_tools": 18
+  },
+  "common": {
+    "read_envelope": {"mode": "complete|partial|inconclusive|conflict|unavailable", "notes": "string|null", "data": "endpoint-specific payload"},
+    "read_seed": "Optional query parameter. 'complete' forces complete and 'degraded' forces partial, except fixed overrides win; any other value is deterministically hashed.",
+    "action_body": {"justification": "required string, trimmed length >= 20", "params": "declared by contract but not validated", "changes": "declared for asset PATCH but not validated"},
+    "action_response": {"accepted": true, "action_id": "act_<8 hex chars>", "message": "string"},
+    "runtime_error_envelope": {"code": "VALIDATION_ERROR|UNAUTHORIZED|FORBIDDEN|NOT_FOUND|ERROR", "message": "string"},
+    "runtime_generated_422": "FastAPI may emit its standard 422 validation response for missing/malformed required input; it is not handled by the custom HTTPException handler."
+  },
+  "endpoints": [
+    {
+      "method": "GET", "path": "/companies/{company_id}", "contract_path": "/companies/{companyId}", "operation_id_contract": "getCompany", "operation_id_runtime_expected": "get_company_companies__company_id__get",
+      "purpose": "Obter empresa.", "category": "CONTEXTO", "operation_type": "READ", "path_parameters": [{"name": "company_id", "required": true, "type": "string"}], "query_parameters": [{"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope; data is a company row: id, name, segment, timezone.", "errors": ["404 company not found"], "permission": "Runtime anonymous; static contract inherits global UserContext security.", "state_effect": "none", "support_cases": [], "candidate_tool": "get_company_context"
+    },
+    {
+      "method": "GET", "path": "/companies/{company_id}/assets", "contract_path": "/companies/{companyId}/assets", "operation_id_contract": "listAssetsByCompany", "operation_id_runtime_expected": "list_assets_by_company_companies__company_id__assets_get",
+      "purpose": "Listar ativos de uma empresa.", "category": "CONTEXTO", "operation_type": "READ", "path_parameters": [{"name": "company_id", "required": true, "type": "string"}], "query_parameters": [{"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope; data.assets is a list of flat asset rows.", "errors": ["404 company not found"], "permission": "Runtime anonymous; static contract inherits global UserContext security.", "state_effect": "none", "support_cases": [], "candidate_tool": "list_company_assets"
+    },
+    {
+      "method": "GET", "path": "/users/me", "contract_path": "/users/me", "operation_id_contract": "getCurrentUser", "operation_id_runtime_expected": "get_current_user_users_me_get",
+      "purpose": "Resolver perfil, empresa e permissões da pessoa usuária.", "category": "CONTEXTO", "operation_type": "READ", "path_parameters": [], "query_parameters": [], "headers": [{"name": "x-user-id", "required": true, "trusted": false}], "body": null,
+      "response": "Unwrapped user row: id, name, role, permissions, company_id.", "errors": ["401 missing header", "401 unknown user"], "permission": "Known x-user-id; no token or cryptographic authentication.", "state_effect": "none", "support_cases": ["All action cases for preflight permission context"], "candidate_tool": "get_current_user_context"
+    },
+    {
+      "method": "GET", "path": "/assets/{asset_id}", "contract_path": "/assets/{assetId}", "operation_id_contract": "getAsset", "operation_id_runtime_expected": "get_asset_assets__asset_id__get",
+      "purpose": "Obter cadastro, criticidade, configuração técnica e pontos do ativo.", "category": "CONTEXTO", "operation_type": "READ", "path_parameters": [{"name": "asset_id", "required": true, "type": "string"}], "query_parameters": [{"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope; runtime data is a flat parquet asset row plus points, not the nested Asset schema in the contract.", "errors": ["404 asset not found"], "permission": "Runtime anonymous; no company ownership check.", "state_effect": "none", "support_cases": ["TKT-CTX-01", "TKT-INV-04", "TKT-INV-07", "TKT-INV-11", "TKT-EXE-13", "TKT-EXE-14"], "candidate_tool": "get_asset_context"
+    },
+    {
+      "method": "PATCH", "path": "/assets/{asset_id}", "contract_path": "/assets/{assetId}", "operation_id_contract": "updateAssetConfig", "operation_id_runtime_expected": "update_asset_config_assets__asset_id__patch",
+      "purpose": "Aceitar solicitação de mudança de criticidade/configuração.", "category": "AÇÃO", "operation_type": "ACTION", "path_parameters": [{"name": "asset_id", "required": true, "type": "string"}], "query_parameters": [], "headers": [{"name": "x-user-id", "required": true}], "body": {"justification": "required >=20 chars", "changes": "contract-defined but runtime accepts any dict"},
+      "response": "ActionResult.", "errors": ["400 invalid justification", "401 missing/unknown user", "403 missing action_high", "404 asset not found", "422 missing/malformed body"], "permission": "action_high", "state_effect": "Declared as state-changing, but runtime does not persist or validate changes.", "support_cases": ["TKT-EXE-14"], "candidate_tool": "request_asset_config_update"
+    },
+    {
+      "method": "GET", "path": "/assets/{asset_id}/analyses", "contract_path": "/assets/{assetId}/analyses", "operation_id_contract": "listAnalyses", "operation_id_runtime_expected": "list_analyses_assets__asset_id__analyses_get",
+      "purpose": "Listar análises de um ativo, opcionalmente filtradas por status.", "category": "INVESTIGAÇÃO", "operation_type": "READ", "path_parameters": [{"name": "asset_id", "required": true, "type": "string"}], "query_parameters": [{"name": "status", "required": false, "type": "string", "contract_enum": ["current", "stale", "pending", "inconclusive"], "runtime_validation": "none"}, {"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope; data.analyses list, or degraded payload.", "errors": ["404 asset not found"], "permission": "Runtime anonymous; no company ownership check.", "state_effect": "none", "support_cases": ["TKT-CTX-02", "TKT-INV-04", "TKT-INV-05", "TKT-INV-08", "TKT-EXE-13", "TKT-EXE-15"], "candidate_tool": "list_asset_analyses"
+    },
+    {
+      "method": "GET", "path": "/analyses/{analysis_id}", "contract_path": "/analyses/{analysisId}", "operation_id_contract": "getAnalysis", "operation_id_runtime_expected": "get_analysis_analyses__analysis_id__get",
+      "purpose": "Obter diagnóstico, evidências, confiança, limitações e estado da análise.", "category": "INVESTIGAÇÃO", "operation_type": "READ", "path_parameters": [{"name": "analysis_id", "required": true, "type": "string"}], "query_parameters": [{"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope containing analysis fields; partial drops evidence and limitations.", "errors": ["404 analysis not found"], "permission": "Runtime anonymous; no company ownership check.", "state_effect": "none", "support_cases": ["TKT-CTX-02", "TKT-INV-06", "TKT-INV-08", "TKT-INV-09", "TKT-INV-10", "TKT-INV-11b", "TKT-EXE-12", "TKT-EXE-13", "TKT-EXE-15"], "candidate_tool": "get_analysis_evidence"
+    },
+    {
+      "method": "POST", "path": "/analyses/{analysis_id}/reprocess", "contract_path": "/analyses/{analysisId}/reprocess", "operation_id_contract": "reprocessAnalysis", "operation_id_runtime_expected": "reprocess_analysis_analyses__analysis_id__reprocess_post",
+      "purpose": "Aceitar solicitação de reprocessamento.", "category": "AÇÃO", "operation_type": "ACTION", "path_parameters": [{"name": "analysis_id", "required": true, "type": "string"}], "query_parameters": [], "headers": [{"name": "x-user-id", "required": true}], "body": {"justification": "required >=20 chars", "params": "optional in contract, unvalidated at runtime"},
+      "response": "ActionResult; success has no status lifecycle.", "errors": ["400 invalid justification", "401 missing/unknown user", "403 missing action_low", "404 analysis not found", "422 missing/malformed body"], "permission": "action_low", "state_effect": "Declared action; runtime returns acceptance only and changes no analysis state.", "support_cases": ["TKT-INV-05", "TKT-INV-09", "TKT-EXE-12"], "candidate_tool": "request_analysis_reprocess"
+    },
+    {
+      "method": "POST", "path": "/analyses/{analysis_id}/request-specialist", "contract_path": "/analyses/{analysisId}/request-specialist", "operation_id_contract": "requestSpecialistAnalysis", "operation_id_runtime_expected": "request_specialist_analysis_analyses__analysis_id__request_specialist_post",
+      "purpose": "Aceitar solicitação de análise especializada.", "category": "AÇÃO", "operation_type": "ACTION", "path_parameters": [{"name": "analysis_id", "required": true, "type": "string"}], "query_parameters": [], "headers": [{"name": "x-user-id", "required": true}], "body": {"justification": "required >=20 chars", "params": "optional in contract, unvalidated at runtime"},
+      "response": "ActionResult.", "errors": ["400 invalid justification", "401 missing/unknown user", "403 missing action_low", "404 analysis not found", "422 missing/malformed body"], "permission": "action_low", "state_effect": "Declared action; runtime returns acceptance only and persists no request.", "support_cases": ["TKT-EXE-13"], "candidate_tool": "request_specialist_analysis"
+    },
+    {
+      "method": "GET", "path": "/assets/{asset_id}/baseline", "contract_path": "/assets/{assetId}/baseline", "operation_id_contract": "getBaseline", "operation_id_runtime_expected": "get_baseline_assets__asset_id__baseline_get",
+      "purpose": "Obter estado, modo de detecção, aprendibilidade e features do baseline.", "category": "INVESTIGAÇÃO", "operation_type": "READ", "path_parameters": [{"name": "asset_id", "required": true, "type": "string"}], "query_parameters": [{"name": "point_id", "required": false, "type": "string"}, {"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope containing baseline; absent baseline returns HTTP 200, mode=inconclusive, data.baseline=null.", "errors": ["404 asset not found"], "permission": "Runtime anonymous.", "state_effect": "none", "support_cases": ["TKT-CTX-01", "TKT-CTX-03", "TKT-INV-04", "TKT-INV-05", "TKT-INV-06", "TKT-INV-09", "TKT-INV-10", "TKT-INV-11", "TKT-INV-11b", "TKT-EXE-12", "TKT-EXE-13"], "candidate_tool": "get_asset_baseline"
+    },
+    {
+      "method": "GET", "path": "/assets/{asset_id}/rms", "contract_path": "/assets/{assetId}/rms", "operation_id_contract": "getRmsSeries", "operation_id_runtime_expected": "get_rms_assets__asset_id__rms_get",
+      "purpose": "Obter série RMS e limiar derivado do baseline.", "category": "INVESTIGAÇÃO", "operation_type": "READ", "path_parameters": [{"name": "asset_id", "required": true, "type": "string"}], "query_parameters": [{"name": "point_id", "required": false, "type": "string"}, {"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope: asset_id, point_id, unit, baseline_reference, baseline_state, alarm_threshold, samples; partial drops samples.", "errors": ["404 asset not found"], "permission": "Runtime anonymous.", "state_effect": "none", "support_cases": ["TKT-CTX-03", "TKT-INV-04", "TKT-INV-05", "TKT-INV-07", "TKT-INV-09", "TKT-EXE-12"], "candidate_tool": "get_asset_rms_series"
+    },
+    {
+      "method": "GET", "path": "/assets/{asset_id}/spectrum", "contract_path": "/assets/{assetId}/spectrum", "operation_id_contract": "getSpectrum", "operation_id_runtime_expected": "get_spectrum_assets__asset_id__spectrum_get",
+      "purpose": "Obter picos e bandas ausentes do espectro FFT.", "category": "INVESTIGAÇÃO", "operation_type": "READ", "path_parameters": [{"name": "asset_id", "required": true, "type": "string"}], "query_parameters": [{"name": "point_id", "required": false, "type": "string"}, {"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope containing parquet spectrum row; absent spectrum returns HTTP 200, mode=inconclusive, data.spectrum=null.", "errors": ["404 asset not found"], "permission": "Runtime anonymous.", "state_effect": "none", "support_cases": ["TKT-CTX-02", "TKT-INV-06", "TKT-INV-07", "TKT-INV-08", "TKT-INV-10", "TKT-INV-11b"], "candidate_tool": "get_asset_spectrum"
+    },
+    {
+      "method": "GET", "path": "/assets/{asset_id}/data-quality", "contract_path": "/assets/{assetId}/data-quality", "operation_id_contract": "getDataQuality", "operation_id_runtime_expected": "get_data_quality_assets__asset_id__data_quality_get",
+      "purpose": "Obter completude, frescor, SNR e indicador de obsolescência.", "category": "INVESTIGAÇÃO", "operation_type": "READ", "path_parameters": [{"name": "asset_id", "required": true, "type": "string"}], "query_parameters": [{"name": "point_id", "required": false, "type": "string", "contract_documented": false}, {"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope containing data quality row; partial drops freshness_minutes; absent row is HTTP 200 inconclusive with data_quality=null.", "errors": ["404 asset not found"], "permission": "Runtime anonymous.", "state_effect": "none", "support_cases": ["TKT-CTX-03", "TKT-INV-04", "TKT-INV-05", "TKT-INV-09", "TKT-INV-10"], "candidate_tool": "get_asset_data_quality"
+    },
+    {
+      "method": "GET", "path": "/models/{model_id}", "contract_path": "/models/{modelId}", "operation_id_contract": "getModel", "operation_id_runtime_expected": "get_model_models__model_id__get",
+      "purpose": "Obter versão, cobertura, requisitos e processamento do modelo.", "category": "INVESTIGAÇÃO", "operation_type": "READ", "path_parameters": [{"name": "model_id", "required": true, "type": "string"}], "query_parameters": [{"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope; runtime nests min_* fields under requirements.", "errors": ["404 model not found"], "permission": "Runtime anonymous.", "state_effect": "none", "support_cases": ["TKT-INV-04", "TKT-INV-05", "TKT-INV-06", "TKT-INV-09", "TKT-INV-10", "TKT-INV-11", "TKT-EXE-15"], "candidate_tool": "get_model_capabilities"
+    },
+    {
+      "method": "POST", "path": "/models/{model_id}/request-retraining", "contract_path": "/models/{modelId}/request-retraining", "operation_id_contract": "requestRetraining", "operation_id_runtime_expected": "request_retraining_models__model_id__request_retraining_post",
+      "purpose": "Aceitar solicitação de retreinamento de modelo.", "category": "AÇÃO", "operation_type": "ACTION", "path_parameters": [{"name": "model_id", "required": true, "type": "string"}], "query_parameters": [], "headers": [{"name": "x-user-id", "required": true}], "body": {"justification": "required >=20 chars", "params": "optional in contract, unvalidated at runtime"},
+      "response": "ActionResult.", "errors": ["400 invalid justification", "401 missing/unknown user", "403 missing action_high", "404 model not found", "422 missing/malformed body"], "permission": "action_high", "state_effect": "Declared high-impact action; runtime returns acceptance only and persists no request.", "support_cases": ["TKT-EXE-15"], "candidate_tool": "request_model_retraining"
+    },
+    {
+      "method": "GET", "path": "/knowledge/search", "contract_path": "/knowledge/search", "operation_id_contract": "searchKnowledge", "operation_id_runtime_expected": "search_knowledge_knowledge_search_get",
+      "purpose": "Buscar procedimentos, glossário e orientações por substring normalizada.", "category": "INVESTIGAÇÃO", "operation_type": "READ", "path_parameters": [], "query_parameters": [{"name": "q", "required": true, "type": "string"}, {"name": "type", "required": false, "type": "string", "contract_enum": ["procedure", "glossary", "guidance"], "runtime_validation": "none"}, {"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope; data.results contains full matching documents, including bodies.", "errors": ["422 missing q"], "permission": "Runtime anonymous.", "state_effect": "none", "support_cases": ["TKT-CTX-01", "TKT-CTX-02", "TKT-CTX-03", "TKT-INV-07", "TKT-INV-08", "TKT-INV-11b"], "candidate_tool": "search_industrial_knowledge"
+    },
+    {
+      "method": "GET", "path": "/knowledge/{doc_id}", "contract_path": "/knowledge/{docId}", "operation_id_contract": "getKnowledgeDoc", "operation_id_runtime_expected": "get_knowledge_doc_knowledge__doc_id__get",
+      "purpose": "Obter documento de conhecimento por ID.", "category": "INVESTIGAÇÃO", "operation_type": "READ", "path_parameters": [{"name": "doc_id", "required": true, "type": "string"}], "query_parameters": [{"name": "seed", "required": false, "type": "string"}], "headers": [], "body": null,
+      "response": "Query envelope containing id, type, title, body and tags.", "errors": ["404 document not found"], "permission": "Runtime anonymous.", "state_effect": "none", "support_cases": ["TKT-CTX-01", "TKT-CTX-02", "TKT-CTX-03"], "candidate_tool": "get_knowledge_document"
+    },
+    {
+      "method": "POST", "path": "/cases/{case_id}/escalate", "contract_path": "/cases/{caseId}/escalate", "operation_id_contract": "escalateCase", "operation_id_runtime_expected": "escalate_case_cases__case_id__escalate_post",
+      "purpose": "Aceitar escalonamento do caso para análise humana.", "category": "AÇÃO", "operation_type": "ACTION", "path_parameters": [{"name": "case_id", "required": true, "type": "string"}], "query_parameters": [], "headers": [{"name": "x-user-id", "required": true}], "body": {"justification": "required >=20 chars", "params": "optional in contract, unvalidated at runtime"},
+      "response": "ActionResult.", "errors": ["400 invalid justification", "401 missing/unknown user", "403 missing escalate", "404 case not found", "422 missing/malformed body"], "permission": "escalate", "state_effect": "Declared action; runtime returns acceptance only and persists no escalation.", "support_cases": ["TKT-INV-04", "TKT-EXE-16"], "candidate_tool": "escalate_support_case"
+    }
+  ]
+}
