@@ -1,0 +1,137 @@
+{
+  "dataset_name": "tractian-industrial-agent-synthetic-training",
+  "dataset_version": "1.0.0",
+  "generator_version": "1.0.0",
+  "generator_seed": "tractian-synthetic-v1-2026-09-02",
+  "generated_on": "2026-09-02",
+  "status": "GENERATED_PENDING_HUMAN_REVIEW",
+  "format": "JSON Lines; one UTF-8 JSON object per line",
+  "design_source": "docs/architecture/04-6-synthetic-training-design.json",
+  "golden_set_usage": "offline_validation_only; zero training examples",
+  "action_policy": "ACTION excluded from Investigator targets; actions_enabled is always false",
+  "schema_example_only": false,
+  "files": [
+    {
+      "path": "understanding/train.jsonl",
+      "component": "understanding",
+      "split": "train",
+      "examples": 240,
+      "bytes": 383091,
+      "sha256": "a6fe589cfa45434435a4232f994eff65b62ba18535ac63425d6e7c082fa81008"
+    },
+    {
+      "path": "understanding/dev.jsonl",
+      "component": "understanding",
+      "split": "dev",
+      "examples": 60,
+      "bytes": 95622,
+      "sha256": "3bb5a73c87fa25628dbb149ba5ff5e7942e90378e72f4365715e36be9d657398"
+    },
+    {
+      "path": "understanding/holdout.jsonl",
+      "component": "understanding",
+      "split": "holdout",
+      "examples": 60,
+      "bytes": 96394,
+      "sha256": "4299271c4e33420a4d21a7e701be1fcd125e652e922f7cd009be397299c87a8e"
+    },
+    {
+      "path": "investigator/train.jsonl",
+      "component": "investigator",
+      "split": "train",
+      "examples": 400,
+      "bytes": 867678,
+      "sha256": "c30160d93364e5a980e3e790972c9edacb4dec9d4f47e117aa352f080d592cd7"
+    },
+    {
+      "path": "investigator/dev.jsonl",
+      "component": "investigator",
+      "split": "dev",
+      "examples": 100,
+      "bytes": 215647,
+      "sha256": "1ae8e44a9e06ad8f7fd803826f19f18783d4c551f5f2a35421ee9ef1a68860f2"
+    },
+    {
+      "path": "investigator/holdout.jsonl",
+      "component": "investigator",
+      "split": "holdout",
+      "examples": 100,
+      "bytes": 217922,
+      "sha256": "31f8cbb9180ea54256c29a635f28fa17365e1b6182067f6f958eed180de92707"
+    }
+  ],
+  "distributions": {
+    "total": 960,
+    "components": {
+      "understanding": 360,
+      "investigator": 600
+    },
+    "understanding": {
+      "request_class_group": {
+        "contextualize": 90,
+        "investigate": 150,
+        "execute_or_handoff_recognition": 80,
+        "mixed_or_unclear": 40
+      },
+      "schema_request_class": {
+        "contextualize": 90,
+        "investigate": 150,
+        "execute": 80,
+        "mixed": 21,
+        "unclear": 19
+      },
+      "difficulty": {
+        "easy": 126,
+        "medium": 162,
+        "hard": 72
+      }
+    },
+    "investigator": {
+      "decision": {
+        "ANSWER": 120,
+        "TOOL_CALL": 330,
+        "ESCALATE": 60,
+        "ASK_USER": 90
+      },
+      "dominant_condition": {
+        "complete_or_healthy": 120,
+        "partial": 80,
+        "inconclusive": 70,
+        "tenant_or_permission": 50,
+        "conflict": 70,
+        "unavailable_semantic": 60,
+        "transport_or_http_error": 60,
+        "missing_or_ambiguous": 50,
+        "stopping_or_redundancy": 40
+      },
+      "difficulty": {
+        "easy": 120,
+        "medium": 300,
+        "hard": 180
+      },
+      "negative_examples": {
+        "no_fabricated_diagnosis": 80,
+        "no_answer_without_evidence": 80,
+        "no_action": 80,
+        "no_irrelevant_tool": 70,
+        "no_cross_tenant_access": 60,
+        "no_conflict_as_conclusion": 60,
+        "no_unavailable_as_complete": 60,
+        "no_confirmation_bias": 50,
+        "no_fabricated_knowledge_source": 50,
+        "no_repeated_tool_loop": 50
+      },
+      "counterfactual_pairs": 120
+    }
+  },
+  "validation": {
+    "deterministic_structural_validation": "passed",
+    "exact_golden_identifier_scan": "passed",
+    "exact_golden_message_scan": "passed",
+    "split_asset_disjointness": "passed",
+    "counterfactual_group_disjointness": "passed",
+    "evidence_reference_integrity": "passed",
+    "human_semantic_leakage_review": "pending",
+    "industrial_subject_matter_review": "pending"
+  }
+}
