@@ -1,0 +1,30 @@
+{
+  "approval_id": "synthetic-v1-understanding-pilot-2026-09-02",
+  "dataset_name": "tractian-industrial-agent-synthetic-training",
+  "dataset_version": "1.0.0",
+  "decision_date": "2026-09-02",
+  "decision": "APPROVED_FOR_UNDERSTANDING_BASELINE_PILOT",
+  "approved_scope": [
+    "understanding/train.jsonl for an experimental baseline or pilot",
+    "understanding/dev.jsonl for development evaluation",
+    "understanding/holdout.jsonl for final pilot evaluation only"
+  ],
+  "prohibited_scope": [
+    "production use",
+    "autonomous or proposed ACTION execution",
+    "Investigator fine-tuning",
+    "use of synthetic holdout for training, prompt selection, threshold tuning, or example selection",
+    "use of the official Golden Set for training or tuning"
+  ],
+  "conditions": [
+    "Keep action_execution_allowed=false.",
+    "Keep Investigator actions_enabled=false and ACTION absent from all targets.",
+    "Run the prompt-only Understanding baseline before considering fine-tuning.",
+    "Preserve train, dev, synthetic holdout, and official Golden boundaries.",
+    "Complete semantic and industrial review before any production approval."
+  ],
+  "human_semantic_review": "PENDING",
+  "production_approval": false,
+  "action_execution_approval": false,
+  "recorded_statement": "Aprovo o dataset sintético versão 1.0 para baseline e piloto do Understanding Agent. Não aprovo ainda seu uso em produção nem a execução de ACTIONs."
+}

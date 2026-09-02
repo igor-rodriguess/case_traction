@@ -34,4 +34,6 @@ O gerador usa seed e data fixas, sobrescreve apenas `datasets/synthetic/` e deve
 
 O estado atual é `GENERATED_PENDING_HUMAN_REVIEW`. As verificações determinísticas passaram, mas os campos `golden_overlap_review` permanecem `pending` de propósito. Antes de fine-tuning ou seleção de prompt, uma revisão humana estratificada deve validar plausibilidade industrial, qualidade dos labels e equivalência semântica com o Golden.
 
+O dataset v1 recebeu aprovação limitada para o baseline e piloto do Understanding Agent em 2026-09-02. O registro auditável está em `datasets/approvals/synthetic-v1-understanding-pilot.json`. Essa decisão não aprova produção, fine-tuning do Investigator ou execução de ACTIONs e não substitui a revisão semântica linha a linha.
+
 O split `holdout` não pode ser usado para treinamento, escolha de exemplos, ajuste de prompt ou thresholds. O Golden oficial permanece exclusivamente em `eval/` e só deve ser executado após o freeze do sistema.

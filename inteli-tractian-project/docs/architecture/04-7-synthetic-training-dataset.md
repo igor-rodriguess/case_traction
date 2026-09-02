@@ -6,6 +6,8 @@ O desenho da Etapa 04.6 foi materializado em seis arquivos JSONL determinístico
 
 Status: **VALIDATED_PENDING_HUMAN_REVIEW**.
 
+Decisão de 2026-09-02: **APPROVED_FOR_UNDERSTANDING_BASELINE_PILOT**. A aprovação é limitada ao baseline e piloto do Understanding Agent; não autoriza produção, fine-tuning do Investigator ou execução de ACTIONs. O registro está em `datasets/approvals/synthetic-v1-understanding-pilot.json`.
+
 ## Inventário
 
 | Componente | Train | Dev | Holdout | Total |
