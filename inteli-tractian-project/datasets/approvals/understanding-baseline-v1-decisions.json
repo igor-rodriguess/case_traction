@@ -1,0 +1,59 @@
+{
+  "decision_record_id": "understanding-baseline-v1-2026-09-02",
+  "recorded_on": "2026-09-02",
+  "component": "understanding_agent",
+  "baseline_id": "understanding-baseline-v1",
+  "prompt_version": "understanding_prompt_v1",
+  "dataset_version": "1.0.0",
+  "status": "BLOCKED_MODEL_SELECTION",
+  "approved": {
+    "dataset_scope": "Understanding synthetic v1 for prompt-only baseline and pilot",
+    "executable_split": "dev",
+    "prompt_strategy": "zero-shot prompt-only with strict structured output",
+    "production_use": false,
+    "action_execution": false,
+    "investigator_fine_tuning": false,
+    "golden_set_access": false
+  },
+  "not_yet_approved": {
+    "model_provider": null,
+    "model_family": null,
+    "model_id": null,
+    "provider_adapter": null,
+    "credential_use": false,
+    "external_api_calls": false,
+    "token_or_cost_budget": null,
+    "data_retention_policy": null
+  },
+  "recorded_divergences": [
+    {
+      "id": "DATASET_APPROVED_MODEL_UNSELECTED",
+      "resolution": "Keep the real CLI blocked until a separate human decision selects a model/base and authorizes its provider."
+    },
+    {
+      "id": "DEV_ALLOWED_HOLDOUT_RESERVED",
+      "resolution": "Run the iterative baseline only on synthetic DEV. Keep synthetic holdout unopened until the pilot configuration is frozen."
+    },
+    {
+      "id": "CONFIDENCE_IS_SCHEMA_PARITY_NOT_CALIBRATION",
+      "resolution": "Preserve confidence because it belongs to the approved schema, report MAE/exact match, and do not use it as a safety or production gate."
+    },
+    {
+      "id": "SYNTHETIC_SEMANTIC_REVIEW_PENDING",
+      "resolution": "Structural checks permit the pilot, but production approval still requires semantic and industrial review."
+    },
+    {
+      "id": "AGENT_INVOCATION_IS_NOT_TOOL_EVIDENCE",
+      "resolution": "Record model invocations in the dedicated append-only agent log. Never create EvidenceRecord entries from Understanding outputs."
+    }
+  ],
+  "requirements_before_unblocking": [
+    "Select and record one model/base suitable for both prompt-only baseline and a comparable future fine-tuning path.",
+    "Approve the provider adapter and credential environment variable without storing secrets in the repository.",
+    "Define a maximum token/cost budget and timeout policy.",
+    "Define retention and redaction rules for provider requests and responses.",
+    "Keep ACTION unavailable and keep the official Golden Set outside runtime and tuning."
+  ],
+  "decision_owner_required": true,
+  "external_api_calls_authorized": false
+}
