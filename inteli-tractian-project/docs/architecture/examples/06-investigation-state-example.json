@@ -1,0 +1,174 @@
+{
+  "case_id": "case_fixture_001",
+  "request_id": "request_fixture_001",
+  "trace_id": "trace_fixture_001",
+  "request": {
+    "message": "A vibração RMS do asset_B211 subiu nesta semana. Isso é desvio real?",
+    "available_context": {
+      "tenant_ref": "tenant_fixture_01",
+      "asset_refs": [
+        "asset_B211"
+      ],
+      "role": "operator",
+      "permissions": [
+        "read"
+      ]
+    }
+  },
+  "understanding": {
+    "request_class": "investigate",
+    "intents": [
+      {
+        "intent_id": "intent_1",
+        "kind": "investigative",
+        "summary": "Avaliar aumento de vibração RMS.",
+        "target_entities": [
+          "asset_B211"
+        ],
+        "requested_outcome": "Resposta baseada em evidências."
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "question_1",
+        "text": "O aumento representa um desvio real?",
+        "kind": "diagnosis",
+        "depends_on": []
+      }
+    ],
+    "entities": {
+      "assets": [
+        "asset_B211"
+      ],
+      "analyses": [],
+      "models": [],
+      "technical_terms": [
+        "vibração RMS"
+      ],
+      "temporal_references": [
+        "nesta semana"
+      ]
+    },
+    "investigation_targets": [
+      "asset context",
+      "rms trend",
+      "baseline",
+      "data quality"
+    ],
+    "missing_information": [],
+    "requested_actions": [],
+    "constraints": {
+      "tenant_scope_known": true,
+      "permissions_known": true,
+      "action_execution_allowed": false
+    },
+    "confidence": 0.9
+  },
+  "understanding_source": "test_fixture",
+  "phase": "investigating",
+  "decision": {
+    "decision_id": "decision_fixture_001",
+    "type": "tool_call",
+    "reason_codes": [
+      "asset_context_required"
+    ],
+    "tool_request": {
+      "tool_name": "get_asset_context",
+      "arguments": {
+        "asset_id": "asset_B211"
+      }
+    },
+    "required_information": [],
+    "supporting_evidence_ids": []
+  },
+  "investigation_step_count": 1,
+  "max_investigation_steps": 12,
+  "tool_call_count": 1,
+  "max_tool_calls": 8,
+  "trace": {
+    "trace_id": "trace_fixture_001",
+    "events": [
+      {
+        "trace_id": "trace_fixture_001",
+        "call_id": "call_fixture_001",
+        "sequence": 1,
+        "event_type": "tool_started",
+        "timestamp": "2026-09-02T15:00:00Z",
+        "tool_name": "get_asset_context",
+        "category": "asset",
+        "operation_kind": "READ",
+        "client_operation": "get_asset",
+        "arguments": {
+          "asset_id": "asset_B211"
+        },
+        "duration_ms": null,
+        "result": null,
+        "failure": null
+      },
+      {
+        "trace_id": "trace_fixture_001",
+        "call_id": "call_fixture_001",
+        "sequence": 2,
+        "event_type": "tool_completed",
+        "timestamp": "2026-09-02T15:00:00.025000Z",
+        "tool_name": "get_asset_context",
+        "category": "asset",
+        "operation_kind": "READ",
+        "client_operation": "get_asset",
+        "arguments": {
+          "asset_id": "asset_B211"
+        },
+        "duration_ms": 25.0,
+        "result": {
+          "operation": "get_asset",
+          "operation_kind": "READ",
+          "method": "GET",
+          "path": "/assets/asset_B211",
+          "transport_ok": true,
+          "status_code": 200,
+          "evidence_status": "complete",
+          "data": {
+            "id": "asset_B211",
+            "name": "Redutor secundário",
+            "criticality": "high"
+          },
+          "notes": "Fixture determinística; nenhuma API externa foi chamada.",
+          "error": null
+        },
+        "failure": null
+      }
+    ]
+  },
+  "evidence_ledger": {
+    "trace_id": "trace_fixture_001",
+    "records": [
+      {
+        "evidence_id": "evidence_fixture_001",
+        "trace_id": "trace_fixture_001",
+        "source_call_id": "call_fixture_001",
+        "source_trace_sequence": 2,
+        "sequence": 1,
+        "collected_at": "2026-09-02T15:00:00.025000Z",
+        "tool_name": "get_asset_context",
+        "client_operation": "get_asset",
+        "arguments": {
+          "asset_id": "asset_B211"
+        },
+        "evidence_status": "complete",
+        "transport_ok": true,
+        "status_code": 200,
+        "method": "GET",
+        "path": "/assets/asset_B211",
+        "data": {
+          "id": "asset_B211",
+          "name": "Redutor secundário",
+          "criticality": "high"
+        },
+        "notes": "Fixture determinística; nenhuma API externa foi chamada."
+      }
+    ]
+  },
+  "final_response": null,
+  "human_handoff": null,
+  "error": null
+}
