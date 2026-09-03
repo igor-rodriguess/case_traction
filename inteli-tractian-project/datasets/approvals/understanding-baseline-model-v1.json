@@ -1,0 +1,52 @@
+{
+  "approval_id": "understanding-baseline-model-v1-2026-09-02",
+  "decision_date": "2026-09-02",
+  "component": "understanding_agent",
+  "status": "PENDING_APPROVAL",
+  "recommended_provider": "openai",
+  "recommended_model": "gpt-4.1-mini-2025-04-14",
+  "recommended_model_base": "gpt-4.1-mini-2025-04-14",
+  "prompt_version": "understanding_prompt_v1",
+  "proposed_adapter": "OpenAIStructuredModelAdapter",
+  "credential_environment_variable": "OPENAI_API_KEY",
+  "credential_use_authorized": false,
+  "external_api_calls_authorized": false,
+  "dev_execution_authorized": false,
+  "authorized_data_scope_if_approved": [
+    "synthetic understanding DEV only"
+  ],
+  "blocked_splits": [
+    "train",
+    "holdout",
+    "golden"
+  ],
+  "blocked_capabilities": [
+    "ACTION tools",
+    "Investigator",
+    "LangGraph",
+    "fine-tuning"
+  ],
+  "proposed_budget_caps_usd": {
+    "smoke_test": 0.05,
+    "full_dev_baseline": 0.5,
+    "complete_repeat": 0.5
+  },
+  "budget_authorized": false,
+  "retention_decision": "PENDING_APPROVAL",
+  "smoke_test_authorized": false,
+  "baseline_authorized": false,
+  "required_human_decisions": [
+    "Approve provider and exact model snapshot",
+    "Authorize credential use and confirm account access",
+    "Accept default retention or prove Zero Data Retention eligibility",
+    "Approve smoke-test budget cap",
+    "Authorize adapter implementation with a pinned SDK version",
+    "Authorize the five-request DEV smoke test"
+  ],
+  "references": [
+    "docs/architecture/05-1-model-decision.md",
+    "docs/architecture/05-1-model-decision.json"
+  ],
+  "external_api_calls": 0,
+  "tokens_consumed": 0
+}

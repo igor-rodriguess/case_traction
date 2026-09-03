@@ -1,0 +1,239 @@
+{
+  "decision_id": "understanding-baseline-model-v1",
+  "decision_date": "2026-09-02",
+  "status": "READY_FOR_MODEL_APPROVAL",
+  "selection_kind": "RECOMMENDATION_NOT_AUTHORIZATION",
+  "selected_provider": "openai",
+  "selected_model": "gpt-4.1-mini-2025-04-14",
+  "model_base": "gpt-4.1-mini-2025-04-14",
+  "prompt_version": "understanding_prompt_v1",
+  "adapter": {
+    "interface": "StructuredModelProvider",
+    "proposed_implementation": "OpenAIStructuredModelAdapter",
+    "sdk": "openai-python",
+    "sdk_version": "PENDING_ADAPTER_IMPLEMENTATION",
+    "api": "Responses API",
+    "implemented": false
+  },
+  "structured_output_strategy": {
+    "type": "json_schema",
+    "strict": true,
+    "source": "UnderstandingOutput.model_json_schema()",
+    "provider_mapping": "Responses API text.format",
+    "post_validation": "UnderstandingOutput.model_validate",
+    "semantic_retry": false
+  },
+  "inference_config": {
+    "model": "gpt-4.1-mini-2025-04-14",
+    "temperature": 0.0,
+    "top_p": "NOT_SET",
+    "max_output_tokens": 2048,
+    "timeout_seconds": 30,
+    "seed": "NOT_SUPPORTED",
+    "concurrency": 1,
+    "store": false,
+    "truncation": "disabled"
+  },
+  "retry_policy": {
+    "max_attempts_total": 3,
+    "retryable": [
+      "connection_failure",
+      "timeout",
+      "http_429",
+      "http_5xx"
+    ],
+    "non_retryable": [
+      "http_400",
+      "http_401",
+      "http_403",
+      "refusal",
+      "invalid_json",
+      "schema_validation_failure",
+      "semantic_failure",
+      "incomplete_output"
+    ],
+    "backoff": "Honor Retry-After; otherwise exponential 1s then 2s with bounded jitter",
+    "audit": "Record every attempt, status, latency and token usage; never replace the original failure silently"
+  },
+  "credential_strategy": {
+    "environment_variable": "OPENAI_API_KEY",
+    "repository_storage": false,
+    "versioned_env_file": false,
+    "logs": false,
+    "trace": false,
+    "showcase": false,
+    "dataset": false,
+    "gitignore_patterns": [
+      ".env",
+      ".env.*",
+      "!.env.example"
+    ],
+    "credential_available": "PENDING_APPROVAL"
+  },
+  "retention_policy": {
+    "data_sent": "Synthetic DEV message, synthetic available_context, versioned prompt and output JSON Schema",
+    "synthetic_only": true,
+    "provider_training_default": "Not used for provider training unless the account explicitly opts in",
+    "abuse_monitoring_retention": "Up to 30 days under the default API policy",
+    "application_state": "Request store=false; do not create conversations, files, batches or hosted state",
+    "zero_data_retention": "NOT_ASSUMED_REQUIRES_PROVIDER_APPROVAL",
+    "local_retention": "Preserve governed run artifacts; never preserve credentials or authorization headers",
+    "approval": "PENDING_APPROVAL"
+  },
+  "cost_estimate": {
+    "currency": "USD",
+    "pricing_verified_on": "2026-09-02",
+    "price_per_million_input_tokens": 0.4,
+    "price_per_million_output_tokens": 1.6,
+    "measured_characters": {
+      "input_min": 10031,
+      "input_mean": 10080.57,
+      "input_max": 10136,
+      "expected_output_min": 760,
+      "expected_output_mean": 902.58,
+      "expected_output_max": 1250
+    },
+    "estimated_tokens_per_sample": {
+      "input_range": [
+        2500,
+        3400
+      ],
+      "output_range": [
+        190,
+        420
+      ],
+      "method": "Local character count converted with a 3-4 characters/token heuristic; actual provider usage is authoritative"
+    },
+    "smoke_5_samples_range": [
+      0.00652,
+      0.01016
+    ],
+    "baseline_60_samples_range": [
+      0.07824,
+      0.12192
+    ],
+    "complete_repeat_60_samples_range": [
+      0.07824,
+      0.12192
+    ],
+    "conservative_baseline_ceiling_if_every_response_uses_2048_output_tokens": 0.27821,
+    "requires_pre_run_price_verification": true
+  },
+  "budget_proposal": {
+    "status": "PENDING_APPROVAL",
+    "smoke_hard_cap_usd": 0.05,
+    "baseline_hard_cap_usd": 0.5,
+    "repeat_hard_cap_usd": 0.5,
+    "cumulative_proposed_cap_usd": 1.05,
+    "enforcement": "Before each request, reject when recorded spend plus conservative projected request cost would exceed the phase cap",
+    "on_exceeded": "Stop before the next request and record BUDGET_EXCEEDED"
+  },
+  "smoke_test_plan": {
+    "status": "PENDING_APPROVAL",
+    "sample_count": 5,
+    "sample_ids": [
+      "syn_u_dev_0001",
+      "syn_u_dev_0011",
+      "syn_u_dev_0036",
+      "syn_u_dev_0049",
+      "syn_u_dev_0050"
+    ],
+    "coverage": [
+      "contextualize",
+      "investigate",
+      "execute_request_without_action_execution",
+      "mixed",
+      "unclear"
+    ],
+    "purpose": [
+      "credential",
+      "adapter",
+      "structured_output",
+      "serialization",
+      "tracing",
+      "token_reporting",
+      "error_handling",
+      "cost_reporting"
+    ],
+    "prompt_change_from_results": false,
+    "external_calls_executed": 0
+  },
+  "full_baseline_plan": {
+    "execute_in_this_stage": false,
+    "sample_count": 60,
+    "prompt_frozen": true,
+    "configuration_frozen": true,
+    "preserve_all_predictions_and_errors": true,
+    "cherry_pick_results": false
+  },
+  "authorized_split": "dev",
+  "dev_execution_authorized": false,
+  "blocked_splits": [
+    "train",
+    "holdout",
+    "golden"
+  ],
+  "blocked_capabilities": [
+    "action_tools",
+    "investigator",
+    "langgraph",
+    "fine_tuning"
+  ],
+  "fine_tuning_comparability": {
+    "same_base_supported": true,
+    "future_base": "gpt-4.1-mini-2025-04-14",
+    "method": "supervised_fine_tuning",
+    "future_experiment_authorized": false,
+    "comparison_requirements": "Freeze DEV baseline artifacts and compare against a separately governed fine-tuned model from the same snapshot"
+  },
+  "shortlist": [
+    {
+      "provider": "openai",
+      "model": "gpt-4.1-mini-2025-04-14",
+      "decision": "RECOMMENDED_PENDING_APPROVAL",
+      "structured_output": true,
+      "fine_tuning": true,
+      "input_usd_per_million": 0.4,
+      "output_usd_per_million": 1.6
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-4o-mini-2024-07-18",
+      "decision": "NOT_SELECTED",
+      "structured_output": true,
+      "fine_tuning": true,
+      "input_usd_per_million": 0.15,
+      "output_usd_per_million": 0.6
+    },
+    {
+      "provider": "openai",
+      "model": "gpt-4.1-nano-2025-04-14",
+      "decision": "REJECTED_DEPRECATED",
+      "structured_output": true,
+      "fine_tuning": true,
+      "input_usd_per_million": 0.1,
+      "output_usd_per_million": 0.4
+    }
+  ],
+  "sources": [
+    "https://developers.openai.com/api/docs/models/gpt-4.1-mini",
+    "https://developers.openai.com/api/docs/models/gpt-4o-mini",
+    "https://developers.openai.com/api/docs/models/gpt-4.1-nano",
+    "https://developers.openai.com/api/docs/guides/structured-outputs",
+    "https://developers.openai.com/api/docs/guides/supervised-fine-tuning",
+    "https://developers.openai.com/api/docs/guides/your-data",
+    "https://developers.openai.com/api/reference/cli/resources/responses/methods/create"
+  ],
+  "open_decisions": [
+    "Human approval of OpenAI and gpt-4.1-mini-2025-04-14",
+    "Human approval of OPENAI_API_KEY use and confirmation of project/model access",
+    "Human acceptance of default retention or confirmation of approved Zero Data Retention",
+    "Human approval of the USD 0.05 smoke cap",
+    "Human approval of the USD 0.50 full-baseline cap",
+    "Implementation and pinning of the provider adapter and OpenAI SDK",
+    "Reverification of availability and prices immediately before the smoke test",
+    "Explicit authorization to execute the five-sample smoke test"
+  ],
+  "external_api_calls": 0,
+  "tokens_consumed": 0
+}
