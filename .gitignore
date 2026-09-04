@@ -1,0 +1,5 @@
+# Ambientes e credenciais locais: nunca versionar.
+**/.venv/
+**/.env
+**/.env.*
+!**/.env.example

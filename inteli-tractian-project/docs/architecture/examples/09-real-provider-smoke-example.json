@@ -1,0 +1,37 @@
+{
+  "showcase_type": "controlled_connectivity_smoke",
+  "external_calls": 3,
+  "credentials_present": true,
+  "results": [
+    {
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "status": "provider_failure",
+      "latency_ms": 480.878,
+      "usage": null,
+      "schema_valid": null,
+      "contract_valid": null,
+      "error_category": "provider_failure"
+    },
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "status": "timeout",
+      "latency_ms": 15139.122,
+      "usage": null,
+      "schema_valid": null,
+      "contract_valid": null,
+      "error_category": "timeout"
+    },
+    {
+      "provider": "cerebras",
+      "model": "gpt-oss-120b",
+      "status": "provider_failure",
+      "latency_ms": 245.759,
+      "usage": null,
+      "schema_valid": null,
+      "contract_valid": null,
+      "error_category": "provider_failure"
+    }
+  ]
+}

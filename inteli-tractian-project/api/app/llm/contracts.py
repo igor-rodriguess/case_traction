@@ -63,6 +63,7 @@ class LLMMetadata(LLMContract):
     prompt_version: Identifier
     finish_reason: str | None = Field(default=None, max_length=120)
     raw_response_id: Identifier | None = None
+    attempt_count: int = Field(default=1, ge=1, le=3)
 
 
 class LLMErrorCode(str, Enum):
@@ -71,6 +72,10 @@ class LLMErrorCode(str, Enum):
     INVALID_JSON = "invalid_json"
     INVALID_SCHEMA = "invalid_schema"
     UNSUPPORTED = "unsupported"
+    NOT_CONFIGURED = "not_configured"
+    AUTHENTICATION = "authentication"
+    RATE_LIMIT = "rate_limit"
+    HTTP_STATUS = "http_status"
 
 
 class LLMError(LLMContract):

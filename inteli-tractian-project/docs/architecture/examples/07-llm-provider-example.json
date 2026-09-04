@@ -58,7 +58,8 @@
       "metadata": {
         "prompt_version": "investigator.v1",
         "finish_reason": "stop",
-        "raw_response_id": null
+        "raw_response_id": null,
+        "attempt_count": 1
       },
       "contract_version": "1.0"
     },
@@ -114,7 +115,8 @@
       "metadata": {
         "prompt_version": "investigator.v1",
         "finish_reason": "stop",
-        "raw_response_id": null
+        "raw_response_id": null,
+        "attempt_count": 1
       },
       "contract_version": "1.0"
     },
