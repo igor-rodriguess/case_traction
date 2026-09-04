@@ -23,6 +23,7 @@ from pydantic import (
 )
 
 from app.agents.understanding.schemas import UnderstandingInput, UnderstandingOutput
+from app.intelligence.contracts import InvestigationConclusion, PlannerOutput, ReporterOutput
 from app.observability import EvidenceLedger, EvidenceRecord, ExecutionTrace, TraceEvent, TraceEventType
 from app.tools import get_investigator_tools
 
@@ -67,6 +68,10 @@ class InvestigationDecisionType(str, Enum):
 class UnderstandingSource(str, Enum):
     MODEL = "model"
     TEST_FIXTURE = "test_fixture"
+
+
+class LLMArtifactSource(str, Enum):
+    FAKE_LLM = "fake_llm"
 
 
 class InvestigationErrorCode(str, Enum):
@@ -183,6 +188,8 @@ class InvestigationState(StateModel):
     request: UnderstandingInput
     understanding: UnderstandingOutput | None = None
     understanding_source: UnderstandingSource | None = None
+    plan: PlannerOutput | None = None
+    planner_source: LLMArtifactSource | None = None
     phase: InvestigationPhase = InvestigationPhase.RECEIVED
     decision: InvestigationDecision | None = None
     investigation_step_count: int = Field(default=0, ge=0)
@@ -193,6 +200,9 @@ class InvestigationState(StateModel):
     evidence_ledger: EvidenceLedgerSnapshot
     final_response: FinalResponse | None = None
     human_handoff: HumanHandoff | None = None
+    conclusion: InvestigationConclusion | None = None
+    technical_report: ReporterOutput | None = None
+    reporter_source: LLMArtifactSource | None = None
     error: InvestigationError | None = None
 
     @model_validator(mode="after")
@@ -201,6 +211,16 @@ class InvestigationState(StateModel):
             raise ValueError("State, Trace e Evidence Ledger devem compartilhar o trace_id.")
         if (self.understanding is None) != (self.understanding_source is None):
             raise ValueError("understanding e understanding_source devem ser definidos juntos.")
+        if (self.plan is None) != (self.planner_source is None):
+            raise ValueError("plan e planner_source devem ser definidos juntos.")
+        if (self.technical_report is None) != (self.reporter_source is None):
+            raise ValueError("technical_report e reporter_source devem ser definidos juntos.")
+        if self.plan is not None and self.understanding is None:
+            raise ValueError("Plan exige understanding anexado.")
+        if self.conclusion is not None and self.phase not in {InvestigationPhase.READY_FOR_RESPONSE, InvestigationPhase.COMPLETED}:
+            raise ValueError("Conclusion exige investigação pronta para resposta.")
+        if self.technical_report is not None and self.conclusion is None:
+            raise ValueError("technical_report exige conclusion.")
         if self.investigation_step_count > self.max_investigation_steps:
             raise ValueError("investigation_step_count excede max_investigation_steps.")
         if self.tool_call_count > self.max_tool_calls:
@@ -324,6 +344,12 @@ def attach_understanding(
     )
 
 
+def attach_plan(state: InvestigationState, plan: PlannerOutput, *, source: LLMArtifactSource) -> InvestigationState:
+    if state.phase is not InvestigationPhase.UNDERSTANDING_COMPLETE or state.plan is not None:
+        raise StateTransitionError("Plan só pode ser anexado uma vez após understanding.")
+    return _replace_state(state, plan=plan, planner_source=source)
+
+
 def begin_investigation(state: InvestigationState) -> InvestigationState:
     if state.phase is not InvestigationPhase.UNDERSTANDING_COMPLETE:
         raise StateTransitionError("Investigação exige UNDERSTANDING_COMPLETE.")
@@ -395,6 +421,29 @@ def attach_final_response(state: InvestigationState, response: FinalResponse) ->
     if set(response.supporting_evidence_ids) - known_evidence_ids:
         raise ValueError("Resposta final referencia evidence_ids desconhecidos.")
     return _replace_state(state, final_response=response, phase=InvestigationPhase.COMPLETED)
+
+
+def attach_conclusion(state: InvestigationState, conclusion: InvestigationConclusion) -> InvestigationState:
+    if state.phase is not InvestigationPhase.READY_FOR_RESPONSE or state.conclusion is not None:
+        raise StateTransitionError("Conclusion exige READY_FOR_RESPONSE e só pode ser anexada uma vez.")
+    known = {record.evidence_id for record in state.evidence_ledger.records}
+    referenced = set(conclusion.supporting_evidence_ids) | set(conclusion.contradictory_evidence_ids)
+    if not referenced <= known:
+        raise ValueError("Conclusion referencia evidence_ids desconhecidos.")
+    return _replace_state(state, conclusion=conclusion)
+
+
+def attach_technical_report(
+    state: InvestigationState, report: ReporterOutput, *, source: LLMArtifactSource
+) -> InvestigationState:
+    if state.phase is not InvestigationPhase.READY_FOR_RESPONSE or state.conclusion is None or state.technical_report is not None:
+        raise StateTransitionError("Technical report exige conclusion em READY_FOR_RESPONSE e só pode ser anexado uma vez.")
+    if report.case_id != state.case_id or report.trace_id != state.trace_id:
+        raise ValueError("Technical report deve preservar case_id e trace_id.")
+    known = {record.evidence_id for record in state.evidence_ledger.records}
+    if not set(report.evidence_references) <= known:
+        raise ValueError("Technical report referencia evidence_ids desconhecidos.")
+    return _replace_state(state, technical_report=report, reporter_source=source)
 
 
 def attach_human_handoff(state: InvestigationState, handoff: HumanHandoff) -> InvestigationState:

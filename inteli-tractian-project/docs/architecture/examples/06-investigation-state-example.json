@@ -65,6 +65,8 @@
     "confidence": 0.9
   },
   "understanding_source": "test_fixture",
+  "plan": null,
+  "planner_source": null,
   "phase": "investigating",
   "decision": {
     "decision_id": "decision_fixture_001",
@@ -170,5 +172,8 @@
   },
   "final_response": null,
   "human_handoff": null,
+  "conclusion": null,
+  "technical_report": null,
+  "reporter_source": null,
   "error": null
 }

@@ -1,0 +1,330 @@
+{
+  "showcase_type": "deterministic_execution_intelligence",
+  "understanding_source": "test_fixture",
+  "planner_source": "fake_llm",
+  "investigator_source": "fake_llm",
+  "reporter_source": "fake_llm",
+  "external_calls": 0,
+  "canonical_understanding": {
+    "request_class": "investigate",
+    "intents": [
+      {
+        "intent_id": "intent_1",
+        "kind": "investigative",
+        "summary": "Avaliar aumento de vibração RMS.",
+        "target_entities": [
+          "asset_B211"
+        ],
+        "requested_outcome": "Resposta baseada em evidências."
+      }
+    ],
+    "questions": [
+      {
+        "question_id": "question_1",
+        "text": "O aumento representa um desvio real?",
+        "kind": "diagnosis",
+        "depends_on": []
+      }
+    ],
+    "entities": {
+      "assets": [
+        "asset_B211"
+      ],
+      "analyses": [],
+      "models": [],
+      "technical_terms": [
+        "vibração RMS"
+      ],
+      "temporal_references": [
+        "nesta semana"
+      ]
+    },
+    "investigation_targets": [
+      "asset context",
+      "rms trend",
+      "baseline",
+      "data quality"
+    ],
+    "missing_information": [],
+    "requested_actions": [],
+    "constraints": {
+      "tenant_scope_known": true,
+      "permissions_known": true,
+      "action_execution_allowed": false
+    },
+    "confidence": 0.9
+  },
+  "planner_output": {
+    "plan_id": "plan_fixture_08",
+    "objectives": [
+      "Verificar contexto e tendência de RMS."
+    ],
+    "investigation_questions": [
+      "A tendência RMS observada merece investigação adicional?"
+    ],
+    "suggested_capabilities": [
+      {
+        "name": "get_asset_rms"
+      },
+      {
+        "name": "get_asset_baseline"
+      }
+    ],
+    "dependencies": [],
+    "missing_information": [],
+    "stopping_conditions": [
+      "Evidência suficiente ou limitação explícita."
+    ],
+    "reason_codes": [
+      "RMS_DEVIATION"
+    ]
+  },
+  "investigation_decisions": [
+    {
+      "node": "investigator_boundary",
+      "phase": "investigating",
+      "decision_type": "tool_call",
+      "tool_call_count": 0,
+      "investigation_step_count": 1
+    },
+    {
+      "node": "investigator_boundary",
+      "phase": "investigating",
+      "decision_type": "tool_call",
+      "tool_call_count": 1,
+      "investigation_step_count": 2
+    },
+    {
+      "node": "investigator_boundary",
+      "phase": "ready_for_response",
+      "decision_type": "answer",
+      "tool_call_count": 2,
+      "investigation_step_count": 3
+    }
+  ],
+  "tool_requests": [
+    {
+      "asset_id": "asset_B211"
+    },
+    {
+      "asset_id": "asset_B211"
+    }
+  ],
+  "trace": {
+    "trace_id": "trace_fixture_06b",
+    "events": [
+      {
+        "trace_id": "trace_fixture_06b",
+        "call_id": "trace_fixture_06b:call:000001",
+        "sequence": 1,
+        "event_type": "tool_started",
+        "timestamp": "2026-09-04T16:00:00Z",
+        "tool_name": "get_asset_context",
+        "category": "asset",
+        "operation_kind": "READ",
+        "client_operation": "get_asset",
+        "arguments": {
+          "asset_id": "asset_B211"
+        },
+        "duration_ms": null,
+        "result": null,
+        "failure": null
+      },
+      {
+        "trace_id": "trace_fixture_06b",
+        "call_id": "trace_fixture_06b:call:000001",
+        "sequence": 2,
+        "event_type": "tool_completed",
+        "timestamp": "2026-09-04T16:00:00.020000Z",
+        "tool_name": "get_asset_context",
+        "category": "asset",
+        "operation_kind": "READ",
+        "client_operation": "get_asset",
+        "arguments": {
+          "asset_id": "asset_B211"
+        },
+        "duration_ms": 20.0,
+        "result": {
+          "operation": "get_asset",
+          "operation_kind": "READ",
+          "method": "GET",
+          "path": "/assets/asset_B211",
+          "transport_ok": true,
+          "status_code": 200,
+          "evidence_status": "complete",
+          "data": {
+            "id": "asset_B211",
+            "criticality": "high"
+          },
+          "notes": "Fixture determinística; nenhuma API externa foi chamada.",
+          "error": null
+        },
+        "failure": null
+      },
+      {
+        "trace_id": "trace_fixture_06b",
+        "call_id": "trace_fixture_06b:call:000002",
+        "sequence": 3,
+        "event_type": "tool_started",
+        "timestamp": "2026-09-04T16:00:00.040000Z",
+        "tool_name": "get_asset_rms",
+        "category": "technical_data",
+        "operation_kind": "READ",
+        "client_operation": "get_rms",
+        "arguments": {
+          "asset_id": "asset_B211"
+        },
+        "duration_ms": null,
+        "result": null,
+        "failure": null
+      },
+      {
+        "trace_id": "trace_fixture_06b",
+        "call_id": "trace_fixture_06b:call:000002",
+        "sequence": 4,
+        "event_type": "tool_completed",
+        "timestamp": "2026-09-04T16:00:00.070000Z",
+        "tool_name": "get_asset_rms",
+        "category": "technical_data",
+        "operation_kind": "READ",
+        "client_operation": "get_rms",
+        "arguments": {
+          "asset_id": "asset_B211"
+        },
+        "duration_ms": 30.0,
+        "result": {
+          "operation": "get_rms",
+          "operation_kind": "READ",
+          "method": "GET",
+          "path": "/assets/asset_B211/rms",
+          "transport_ok": true,
+          "status_code": 200,
+          "evidence_status": "complete",
+          "data": {
+            "asset_id": "asset_B211",
+            "trend": "elevated"
+          },
+          "notes": "Fixture determinística; nenhuma API externa foi chamada.",
+          "error": null
+        },
+        "failure": null
+      }
+    ]
+  },
+  "evidence_ledger": {
+    "trace_id": "trace_fixture_06b",
+    "records": [
+      {
+        "evidence_id": "trace_fixture_06b:evidence:000001",
+        "trace_id": "trace_fixture_06b",
+        "source_call_id": "trace_fixture_06b:call:000001",
+        "source_trace_sequence": 2,
+        "sequence": 1,
+        "collected_at": "2026-09-04T16:00:00.020000Z",
+        "tool_name": "get_asset_context",
+        "client_operation": "get_asset",
+        "arguments": {
+          "asset_id": "asset_B211"
+        },
+        "evidence_status": "complete",
+        "transport_ok": true,
+        "status_code": 200,
+        "method": "GET",
+        "path": "/assets/asset_B211",
+        "data": {
+          "id": "asset_B211",
+          "criticality": "high"
+        },
+        "notes": "Fixture determinística; nenhuma API externa foi chamada."
+      },
+      {
+        "evidence_id": "trace_fixture_06b:evidence:000002",
+        "trace_id": "trace_fixture_06b",
+        "source_call_id": "trace_fixture_06b:call:000002",
+        "source_trace_sequence": 4,
+        "sequence": 2,
+        "collected_at": "2026-09-04T16:00:00.070000Z",
+        "tool_name": "get_asset_rms",
+        "client_operation": "get_rms",
+        "arguments": {
+          "asset_id": "asset_B211"
+        },
+        "evidence_status": "complete",
+        "transport_ok": true,
+        "status_code": 200,
+        "method": "GET",
+        "path": "/assets/asset_B211/rms",
+        "data": {
+          "asset_id": "asset_B211",
+          "trend": "elevated"
+        },
+        "notes": "Fixture determinística; nenhuma API externa foi chamada."
+      }
+    ]
+  },
+  "investigation_conclusion": {
+    "conclusion_id": "conclusion_fixture_08",
+    "claims": [
+      {
+        "claim_id": "claim_fixture_08",
+        "statement": "A tendência RMS está elevada; a conclusão é limitada à evidência coletada.",
+        "supporting_evidence_ids": [
+          "trace_fixture_06b:evidence:000002"
+        ],
+        "contradictory_evidence_ids": [],
+        "limitation": "Amostra sintética e escopo limitado.",
+        "status": "qualified"
+      }
+    ],
+    "supporting_evidence_ids": [
+      "trace_fixture_06b:evidence:000001",
+      "trace_fixture_06b:evidence:000002"
+    ],
+    "contradictory_evidence_ids": [],
+    "limitations": [
+      "Amostra sintética e escopo limitado."
+    ],
+    "unresolved_points": [],
+    "reason_codes": [
+      "EVIDENCE_COLLECTED"
+    ]
+  },
+  "reporter_output": {
+    "report_id": "report_fixture_08",
+    "case_id": "case_fixture_06b",
+    "audience": "tractian_engineering_team",
+    "executive_summary": "Relatório técnico sintético para revisão de engenharia.",
+    "investigation_performed": [
+      "Contexto do ativo e tendência RMS consultados."
+    ],
+    "findings": [
+      "A tendência RMS foi observada na evidência disponível."
+    ],
+    "claims": [
+      {
+        "claim_id": "claim_fixture_08",
+        "statement": "A tendência RMS está elevada; a conclusão é limitada à evidência coletada.",
+        "supporting_evidence_ids": [
+          "trace_fixture_06b:evidence:000002"
+        ],
+        "contradictory_evidence_ids": [],
+        "limitation": "Amostra sintética e escopo limitado.",
+        "status": "qualified"
+      }
+    ],
+    "evidence_references": [
+      "trace_fixture_06b:evidence:000001",
+      "trace_fixture_06b:evidence:000002"
+    ],
+    "contradictions": [],
+    "limitations": [
+      "Amostra sintética e escopo limitado."
+    ],
+    "missing_information": [],
+    "suggested_engineer_next_steps": [
+      "Validar em dados operacionais reais antes de qualquer ação."
+    ],
+    "escalation_reason": null,
+    "trace_id": "trace_fixture_06b"
+  }
+}
