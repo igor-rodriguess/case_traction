@@ -88,6 +88,7 @@ class LLMErrorCode(str, Enum):
     RESPONSE_SCHEMA_ERROR = "response_schema_error"
     NETWORK_ERROR = "network_error"
     QUOTA_EXCEEDED = "quota_exceeded"
+    OUTPUT_TRUNCATED = "output_truncated"
 
 
 class LLMError(LLMContract):

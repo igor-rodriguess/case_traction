@@ -1,0 +1,334 @@
+{
+  "experiment_version": "e2e-full-dev-v2",
+  "routing_version": "MODEL_ROUTING_V5",
+  "routing_note": "Routing assignment unchanged. Version increment reflects configuration, prompt and capability changes.",
+  "full_dev_v2_executed": false,
+  "blocked_by": "PROVIDER_QUOTA_EXHAUSTED",
+  "blocked_evidence": {
+    "identical_v1_configuration_also_rejected": true,
+    "detail": "Understanding com prompt v1 e orçamento 1800 recebeu HTTP 429 em 105 ms."
+  },
+  "planner_token_repair": {
+    "verification": "planner_output_token_ceiling_repair",
+    "provider_ceiling_v1": 512,
+    "provider_ceiling_v2": 8192,
+    "role_budget": 1200,
+    "cases_truncated_in_v1": 4,
+    "cases_valid_after_repair": 4,
+    "exceeded_old_ceiling": [
+      "syn_u_dev_0026",
+      "syn_u_dev_0051"
+    ],
+    "results": [
+      {
+        "sample_id": "syn_u_dev_0025",
+        "v1": {
+          "finish_reason": "MAX_TOKENS",
+          "output_tokens": 498,
+          "schema_valid": false,
+          "effective_output_ceiling": 512
+        },
+        "v2": {
+          "finish_reason": "STOP",
+          "output_tokens": 285,
+          "schema_valid": true,
+          "status": "success",
+          "error": null,
+          "effective_output_ceiling": 1200
+        }
+      },
+      {
+        "sample_id": "syn_u_dev_0026",
+        "v1": {
+          "finish_reason": "MAX_TOKENS",
+          "output_tokens": 496,
+          "schema_valid": false,
+          "effective_output_ceiling": 512
+        },
+        "v2": {
+          "finish_reason": "STOP",
+          "output_tokens": 618,
+          "schema_valid": true,
+          "status": "success",
+          "error": null,
+          "effective_output_ceiling": 1200
+        }
+      },
+      {
+        "sample_id": "syn_u_dev_0034",
+        "v1": {
+          "finish_reason": "MAX_TOKENS",
+          "output_tokens": 495,
+          "schema_valid": false,
+          "effective_output_ceiling": 512
+        },
+        "v2": {
+          "finish_reason": "STOP",
+          "output_tokens": 481,
+          "schema_valid": true,
+          "status": "success",
+          "error": null,
+          "effective_output_ceiling": 1200
+        }
+      },
+      {
+        "sample_id": "syn_u_dev_0051",
+        "v1": {
+          "finish_reason": "MAX_TOKENS",
+          "output_tokens": 495,
+          "schema_valid": false,
+          "effective_output_ceiling": 512
+        },
+        "v2": {
+          "finish_reason": "STOP",
+          "output_tokens": 531,
+          "schema_valid": true,
+          "status": "success",
+          "error": null,
+          "effective_output_ceiling": 1200
+        }
+      }
+    ]
+  },
+  "temporal_capability_matrix": {
+    "any_tool_supports_temporal_filter": false,
+    "tools_returning_timestamped_data": [
+      "list_asset_analyses",
+      "get_analysis_details",
+      "get_asset_rms",
+      "get_asset_data_quality",
+      "get_model_capabilities"
+    ],
+    "tools": [
+      {
+        "tool_name": "get_asset_context",
+        "temporal_support": "NONE",
+        "accepted_arguments": [
+          "asset_id"
+        ],
+        "required_arguments": [
+          "asset_id"
+        ]
+      },
+      {
+        "tool_name": "list_asset_analyses",
+        "temporal_support": "RETURNS_TIMESTAMPED_DATA",
+        "accepted_arguments": [
+          "asset_id",
+          "status"
+        ],
+        "required_arguments": [
+          "asset_id"
+        ]
+      },
+      {
+        "tool_name": "get_analysis_details",
+        "temporal_support": "RETURNS_TIMESTAMPED_DATA",
+        "accepted_arguments": [
+          "analysis_id"
+        ],
+        "required_arguments": [
+          "analysis_id"
+        ]
+      },
+      {
+        "tool_name": "get_asset_baseline",
+        "temporal_support": "NONE",
+        "accepted_arguments": [
+          "asset_id",
+          "point_id"
+        ],
+        "required_arguments": [
+          "asset_id"
+        ]
+      },
+      {
+        "tool_name": "get_asset_rms",
+        "temporal_support": "RETURNS_TIMESTAMPED_DATA",
+        "accepted_arguments": [
+          "asset_id",
+          "point_id"
+        ],
+        "required_arguments": [
+          "asset_id"
+        ]
+      },
+      {
+        "tool_name": "get_asset_spectrum",
+        "temporal_support": "NONE",
+        "accepted_arguments": [
+          "asset_id",
+          "point_id"
+        ],
+        "required_arguments": [
+          "asset_id"
+        ]
+      },
+      {
+        "tool_name": "get_asset_data_quality",
+        "temporal_support": "RETURNS_TIMESTAMPED_DATA",
+        "accepted_arguments": [
+          "asset_id",
+          "point_id"
+        ],
+        "required_arguments": [
+          "asset_id"
+        ]
+      },
+      {
+        "tool_name": "get_model_capabilities",
+        "temporal_support": "RETURNS_TIMESTAMPED_DATA",
+        "accepted_arguments": [
+          "model_id"
+        ],
+        "required_arguments": [
+          "model_id"
+        ]
+      },
+      {
+        "tool_name": "search_industrial_knowledge",
+        "temporal_support": "NONE",
+        "accepted_arguments": [
+          "query",
+          "knowledge_type"
+        ],
+        "required_arguments": [
+          "query"
+        ]
+      },
+      {
+        "tool_name": "get_knowledge_document",
+        "temporal_support": "NONE",
+        "accepted_arguments": [
+          "doc_id"
+        ],
+        "required_arguments": [
+          "doc_id"
+        ]
+      }
+    ]
+  },
+  "understanding_calibration": {
+    "paired_cases": 30,
+    "accuracy_v1": 0.7,
+    "accuracy_v2": 0.9333,
+    "regressions": 0,
+    "changes": [
+      {
+        "sample_id": "syn_u_dev_0037",
+        "expected": "execute",
+        "v1": "mixed",
+        "v2": "execute",
+        "verdict": "improved"
+      },
+      {
+        "sample_id": "syn_u_dev_0040",
+        "expected": "execute",
+        "v1": "mixed",
+        "v2": "execute",
+        "verdict": "improved"
+      },
+      {
+        "sample_id": "syn_u_dev_0043",
+        "expected": "execute",
+        "v1": "mixed",
+        "v2": "execute",
+        "verdict": "improved"
+      },
+      {
+        "sample_id": "syn_u_dev_0044",
+        "expected": "execute",
+        "v1": "mixed",
+        "v2": "execute",
+        "verdict": "improved"
+      },
+      {
+        "sample_id": "syn_u_dev_0048",
+        "expected": "execute",
+        "v1": "mixed",
+        "v2": "execute",
+        "verdict": "improved"
+      },
+      {
+        "sample_id": "syn_u_dev_0050",
+        "expected": "unclear",
+        "v1": "investigate",
+        "v2": "unclear",
+        "verdict": "improved"
+      },
+      {
+        "sample_id": "syn_u_dev_0051",
+        "expected": "mixed",
+        "v1": "investigate",
+        "v2": "unclear",
+        "verdict": "lateral"
+      },
+      {
+        "sample_id": "syn_u_dev_0054",
+        "expected": "unclear",
+        "v1": "investigate",
+        "v2": "unclear",
+        "verdict": "improved"
+      }
+    ],
+    "unscored_due_to_provider_quota": 30
+  },
+  "smoke": {
+    "sample_ids_attempted": [
+      "syn_u_dev_0011",
+      "syn_u_dev_0012",
+      "syn_u_dev_0025",
+      "syn_u_dev_0036"
+    ],
+    "completed_cases": [
+      {
+        "sample_id": "syn_u_dev_0011",
+        "terminal_status": "AWAITING_REQUIRED_INFORMATION",
+        "understanding_request_class": "investigate",
+        "temporal_policy": {
+          "temporal_request_detected": true,
+          "relative_reference_detected": true,
+          "filterable_tools": [],
+          "timestamped_tools": [
+            "list_asset_analyses",
+            "get_analysis_details",
+            "get_asset_rms",
+            "get_asset_data_quality",
+            "get_model_capabilities"
+          ],
+          "reason_code": "TEMPORAL_FILTER_UNSUPPORTED",
+          "handling": "PROCEED_WITHOUT_FILTER",
+          "guidance": "Nenhuma tool aceita recorte temporal. Não invente argumentos como time_window, hours ou window: eles não existem no schema e serão rejeitados. Consulte as tools que devolvem dado datado e registre a limitação temporal na conclusão."
+        },
+        "investigator_decisions": [
+          {
+            "type": "ask_user",
+            "reason_codes": [
+              "MISSING_TIME_WINDOW"
+            ],
+            "first_pass_valid": true,
+            "completion_policy": {
+              "accepted": true,
+              "reason_code": "EXTERNAL_INFORMATION_REQUIRED",
+              "rejected_decision_type": null
+            }
+          }
+        ],
+        "errors": []
+      }
+    ],
+    "quota_blocked_cases": [
+      "syn_u_dev_0012",
+      "syn_u_dev_0025",
+      "syn_u_dev_0036"
+    ]
+  },
+  "pending_measurements": [
+    "terminalidades e taxa de terminal válido da V2",
+    "taxa de FAILED após os reparos",
+    "validade de primeira passagem do Investigator com contrato informado",
+    "taxas de ASK_USER e ESCALATE sob a política temporal",
+    "tokens, latência e custo da V2",
+    "se o Reporter é alcançado"
+  ]
+}

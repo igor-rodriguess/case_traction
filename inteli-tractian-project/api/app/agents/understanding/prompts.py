@@ -139,6 +139,61 @@ extras. Não inclua raciocínio na saída.
 """
 
 
+PROMPT_VERSION_V2: Final[str] = "understanding_prompt_v2"
+
+# A Etapa 09.5 mediu 66,1% de acurácia de `request_class`, com os 13 casos
+# `execute` do DEV virando `mixed`. O diagnóstico apontou ausência de regra de
+# precedência: o modelo via investigação e ação juntas e, sem critério de
+# dominância, escolhia `mixed`.
+#
+# A regra abaixo é geral e derivada da semântica das classes, não dos casos.
+# Nenhum exemplo do DEV entra aqui: o bloco descreve *como decidir*, e não *o que
+# responder* para uma mensagem específica.
+_CLASSIFICATION_PRECEDENCE: Final[str] = """
+# Regra de precedência de `request_class`
+
+Aplique nesta ordem e pare na primeira que se aplicar:
+
+1. `execute` — o cliente NOMEIA a ação de impacto que quer que seja feita, em
+   primeira pessoa ("quero pedir reprocessamento", "quero encaminhar para
+   especialista", "solicite o retreinamento"). Isto continua valendo quando a
+   ação está condicionada a evidência ("se houver evidência suficiente, quero
+   X") e quando o cliente pede que uma verificação ocorra antes. Investigar para
+   fundamentar a ação pedida é PRÉ-CONDIÇÃO da ação, não uma segunda classe: não
+   torne o caso `mixed` por causa dela.
+
+2. `unclear` — a solicitação não define o que está sendo pedido: o desfecho
+   desejado é vago E a entidade aparece apenas por referência anafórica
+   ("aquele equipamento que comentamos") sem identificador e sem `asset_refs`.
+
+3. `mixed` — há mais de uma classe legítima, nenhuma domina, e o cliente NÃO
+   nomeou a ação que quer. Pedir que alguém avise se algo precisa ser feito ("se
+   precisar mexer em algo, me diga") é pedido de recomendação, não de execução:
+   não classifique como `execute`.
+
+4. `investigate` — o cliente quer saber o que está acontecendo com um ativo.
+
+5. `contextualize` — o cliente quer entender um conceito, termo ou critério.
+
+`requested_actions` é INDEPENDENTE de `request_class`. Registre toda ação de
+impacto reconhecida, inclusive a condicional e a apenas sugerida — mesmo quando
+a classe final for `mixed`, `unclear` ou `investigate`. Reconhecer não é
+executar, e `action_execution_allowed` permanece `false` em todos os casos.
+
+`execute` NÃO significa que você pode executar. Significa apenas que o cliente
+pediu uma ação de impacto de forma explícita.
+"""
+
+SYSTEM_PROMPT_V2: Final[str] = SYSTEM_PROMPT.replace(
+    "# Formato", _CLASSIFICATION_PRECEDENCE + "\n# Formato"
+)
+"""V1 acrescido da precedência de classe; o restante permanece idêntico.
+
+Manter V1 intacto preserva a reprodutibilidade da Etapa 09.5, e derivar V2 por
+substituição garante que a única diferença medida seja a regra nova.
+"""
+
+
 def build_user_prompt(request: UnderstandingInput) -> str:
     """Serializa a solicitação de forma determinística e sem identidade sensível."""
 

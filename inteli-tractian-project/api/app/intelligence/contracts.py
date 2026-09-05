@@ -68,6 +68,28 @@ class TraceSummary(IntelligenceModel):
     last_call_id: Identifier | None = None
 
 
+class CapabilityContract(IntelligenceModel):
+    """Argumentos que a tool realmente aceita, copiados do seu próprio schema.
+
+    Sem isto o Investigator recebe apenas o nome da capability e precisa supor os
+    parâmetros — foi assim que `time_window`, `hours` e `window` apareceram na
+    Etapa 09.5. Informar o contrato não amplia a superfície: continua sendo o
+    mesmo schema que a Tool Layer valida.
+    """
+
+    name: Identifier
+    accepted_arguments: tuple[Identifier, ...] = Field(min_length=1)
+    required_arguments: tuple[Identifier, ...] = ()
+    argument_schema: dict[str, JsonValue] = Field(default_factory=dict)
+
+    @field_validator("name")
+    @classmethod
+    def read_only(cls, value: str) -> str:
+        if value not in _READ_NAMES:
+            raise ValueError("Capability deve ser uma READ tool autorizada ao Investigator.")
+        return value
+
+
 class InvestigatorInput(IntelligenceModel):
     understanding: UnderstandingOutput
     plan: PlannerOutput
@@ -75,6 +97,8 @@ class InvestigatorInput(IntelligenceModel):
     evidence: EvidenceSummary
     trace: TraceSummary
     permitted_capabilities: tuple[CapabilityReference, ...] = Field(min_length=1)
+    capability_contracts: tuple[CapabilityContract, ...] = ()
+    temporal_guidance: str | None = Field(default=None, max_length=600)
     investigation_step_count: int = Field(ge=0)
     max_investigation_steps: int = Field(ge=1)
     tool_call_count: int = Field(ge=0)

@@ -122,6 +122,77 @@ def test_groq_allows_component_request_up_to_its_explicit_ceiling(monkeypatch) -
     assert default_provider_configs()[ProviderName.GROQ].max_output_tokens == 2048
 
 
+def test_gemini_ceiling_does_not_silently_shrink_component_budgets(monkeypatch) -> None:
+    """Regressão da Etapa 09.5: o teto default de 512 truncava Planner e Reporter."""
+
+    for name in ("GROQ_MODEL", "GEMINI_MODEL", "CEREBRAS_MODEL"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("GEMINI_UNDERSTANDING_MODEL", "gemini-3.5-flash-lite")
+    gemini = default_provider_configs()[ProviderName.GEMINI]
+
+    # Orçamentos pedidos pelos papéis roteados ao Gemini no runner E2E, mais um
+    # pedido alto para provar que o teto não é um novo 512 disfarçado.
+    for requested in (700, 900, 1200, 1600, 4000):
+        assert min(requested, gemini.max_output_tokens) == requested
+    assert gemini.retry.max_attempts == 2
+
+
+def test_request_may_still_ask_for_less_than_the_provider_ceiling(monkeypatch) -> None:
+    """O teto é limite, não piso: um papel pode pedir menos e receber menos."""
+
+    monkeypatch.setenv("TEST_PROVIDER_KEY", "test-only")
+    sent: dict[str, int] = {}
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        sent["limit"] = json.loads(req.content)["generationConfig"]["maxOutputTokens"]
+        return httpx.Response(200, json={"candidates": [{"content": {"parts": [{"text": "{}"}]}, "finishReason": "STOP"}]})
+
+    config_with_ceiling = config(ProviderName.GEMINI).model_copy(update={"max_output_tokens": 8192})
+    provider = create_provider(config_with_ceiling, transport=httpx.MockTransport(handler))
+    small = LLMRequest(request_id="small", agent_role="investigator", messages=(LLMMessage(role="user", content="JSON"),), prompt_version="v", generation=LLMGenerationParameters(), expected_schema={"type": "object"}, max_output_tokens=64, timeout_seconds=5)
+
+    provider.infer(small)
+
+    assert sent["limit"] == 64
+    provider.close()
+
+
+@pytest.mark.parametrize(
+    "name, payload",
+    [
+        (
+            ProviderName.GROQ,
+            {"choices": [{"message": {"content": '{"parcial":'}, "finish_reason": "length"}]},
+        ),
+        (
+            ProviderName.GEMINI,
+            {"candidates": [{"content": {"parts": [{"text": '{"parcial":'}]}, "finishReason": "MAX_TOKENS"}]},
+        ),
+    ],
+)
+def test_truncated_structured_output_is_reported_as_truncation_not_bad_json(monkeypatch, name, payload) -> None:
+    monkeypatch.setenv("TEST_PROVIDER_KEY", "test-only")
+    provider = create_provider(config(name), transport=httpx.MockTransport(lambda _: httpx.Response(200, json=payload)))
+
+    result = provider.infer(request())
+
+    assert result.error is not None
+    assert result.error.code.value == "output_truncated"
+    assert result.error.retryable is False
+    assert diagnostic_result(result, CredentialStatus.CONFIGURED).root_cause_layer.value == "configuration"
+    provider.close()
+
+
+def test_truncated_plain_text_is_still_usable_and_not_an_error(monkeypatch) -> None:
+    monkeypatch.setenv("TEST_PROVIDER_KEY", "test-only")
+    payload = {"candidates": [{"content": {"parts": [{"text": "OK par"}]}, "finishReason": "MAX_TOKENS"}]}
+    provider = create_provider(config(ProviderName.GEMINI), transport=httpx.MockTransport(lambda _: httpx.Response(200, json=payload)))
+    plain = LLMRequest(request_id="plain", agent_role="connectivity", messages=(LLMMessage(role="user", content="OK"),), prompt_version="connectivity.v1", generation=LLMGenerationParameters(), expected_schema={}, max_output_tokens=16, timeout_seconds=5)
+
+    assert provider.infer(plain).status.value == "success"
+    provider.close()
+
+
 @pytest.mark.parametrize("status, expected", [(400, "request_schema_error"), (402, "quota_exceeded"), (404, "model_not_found")])
 def test_http_diagnostics_preserve_only_status_and_safe_category(monkeypatch, status, expected) -> None:
     monkeypatch.setenv("TEST_PROVIDER_KEY", "test-only")

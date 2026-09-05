@@ -17,6 +17,8 @@ class AuditModel(BaseModel):
 
 
 class TraceEventType(str, Enum):
+    UNDERSTANDING_COMPLETED = "understanding_completed"
+    PLANNER_COMPLETED = "planner_completed"
     LLM_DECISION_PRODUCED = "llm_decision_produced"
     DECISION_VALIDATED = "decision_validated"
     DECISION_ACCEPTED = "decision_accepted"
@@ -25,10 +27,12 @@ class TraceEventType(str, Enum):
     TOOL_STARTED = "tool_started"
     TOOL_COMPLETED = "tool_completed"
     TOOL_FAILED = "tool_failed"
+    EVIDENCE_CREATED = "evidence_created"
     CONCLUSION_CREATED = "conclusion_created"
     REPORTER_STARTED = "reporter_started"
     REPORTER_COMPLETED = "reporter_completed"
     REPORTER_FAILED = "reporter_failed"
+    TERMINAL_STATE_REACHED = "terminal_state_reached"
 
 
 class ClientErrorSnapshot(AuditModel):

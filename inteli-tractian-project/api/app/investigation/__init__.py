@@ -30,9 +30,23 @@ from app.investigation.state import (
     synchronize_observability,
 )
 from app.investigation.completion_policy import CompletionAssessment, assess_completion_decision
+from app.investigation.temporal_policy import (
+    TemporalAssessment,
+    TemporalHandling,
+    TemporalReasonCode,
+    assess_temporal_request,
+    detect_temporal_request,
+    is_temporal_argument,
+)
 
 __all__ = [
     "CompletionAssessment",
+    "TemporalAssessment",
+    "TemporalHandling",
+    "TemporalReasonCode",
+    "assess_temporal_request",
+    "detect_temporal_request",
+    "is_temporal_argument",
     "EvidenceLedgerSnapshot",
     "FinalResponse",
     "HumanHandoff",

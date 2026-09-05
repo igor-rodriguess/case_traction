@@ -1,0 +1,3174 @@
+{
+  "experiment_version": "e2e-full-dev-v1",
+  "routing_version": "MODEL_ROUTING_V4",
+  "selection_policy": "primeira ocorrência por categoria observada, sucessos e falhas",
+  "categories_absent": [
+    "grounded_completion",
+    "contract_failsafe"
+  ],
+  "final_status": "FIX_ARCHITECTURE_BEFORE_TRAINING",
+  "quality_gates": {
+    "ARCHITECTURE_STABILITY": "FAIL",
+    "CONTRACT_RELIABILITY": "PASS_WITH_WARNINGS",
+    "INVESTIGATION_QUALITY": "FAIL",
+    "GROUNDING_QUALITY": "PASS_WITH_WARNINGS",
+    "REPORTER_QUALITY": "PASS_WITH_WARNINGS",
+    "DATA_COVERAGE": "FAIL",
+    "PROVIDER_STABILITY": "PASS"
+  },
+  "training_assessment": {
+    "understanding": "PROMPT_CALIBRATION_FIRST",
+    "planner": "PROMPT_CALIBRATION_FIRST",
+    "investigator": "DATA_PROBLEM_FIRST",
+    "reporter": "INSUFFICIENT_EVIDENCE_TO_DECIDE"
+  },
+  "data_coverage_summary": {
+    "cases_fully_aligned": 0,
+    "cases_partially_aligned": 24,
+    "cases_misaligned": 26,
+    "cases_impossible_from_api": 10,
+    "cases_grounded_answer_reachable": 37,
+    "cases_requesting_unavailable_temporal_context": 52,
+    "temporal_filtering_supported_by_tools": false
+  },
+  "cases": {
+    "syn_u_dev_0001": {
+      "illustrates": [
+        "safe_escalation",
+        "evidence_inconclusive",
+        "data_coverage_gap"
+      ],
+      "sample_id": "syn_u_dev_0001",
+      "training_tags": [
+        "contextualize",
+        "easy",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "request": {
+        "message": "Você consegue verificar o que significa tendência radial para redutor secundário asset_B211 no turno noturno e qual fonte técnica deve orientar a interpretação desde o último turno?",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_01",
+          "asset_refs": [
+            "asset_B211"
+          ],
+          "role": "operator",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "understanding": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "prompt_version": "understanding_prompt_v2",
+        "schema_valid": true,
+        "finish_reason": "stop",
+        "latency_ms": 2272.154,
+        "usage": {
+          "input_tokens": 2490,
+          "output_tokens": 861,
+          "total_tokens": 3351
+        },
+        "output": {
+          "request_class": "contextualize",
+          "intents": [
+            {
+              "intent_id": "i1",
+              "kind": "informational",
+              "summary": "Entender o significado de tendência radial para o redutor secundário asset_B211 no turno noturno",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "Obter definição e contexto da tendência radial"
+            },
+            {
+              "intent_id": "i2",
+              "kind": "informational",
+              "summary": "Identificar a fonte técnica que deve orientar a interpretação da tendência radial desde o último turno",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "Saber qual documento ou norma consultar"
+            }
+          ],
+          "questions": [
+            {
+              "question_id": "q1",
+              "text": "O que significa tendência radial para redutor secundário?",
+              "kind": "clarification",
+              "depends_on": "…[1 itens omitidos]"
+            },
+            {
+              "question_id": "q2",
+              "text": "Qual fonte técnica deve orientar a interpretação da tendência radial desde o último turno?",
+              "kind": "procedure",
+              "depends_on": "…[1 itens omitidos]"
+            }
+          ],
+          "entities": {
+            "assets": [
+              "asset_B211"
+            ],
+            "analyses": [],
+            "models": [],
+            "technical_terms": [
+              "tendência radial"
+            ],
+            "temporal_references": [
+              "turno noturno",
+              "último turno"
+            ]
+          },
+          "investigation_targets": [
+            "industrial knowledge",
+            "asset context"
+          ],
+          "missing_information": [],
+          "requested_actions": [],
+          "constraints": {
+            "tenant_scope_known": true,
+            "permissions_known": true,
+            "action_execution_allowed": false
+          },
+          "confidence": 0.97
+        }
+      },
+      "planner": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "prompt_version": "e2e_planner_v1",
+        "schema_valid": true,
+        "finish_reason": "STOP",
+        "latency_ms": 1846.269,
+        "usage": {
+          "input_tokens": 539,
+          "output_tokens": 350,
+          "total_tokens": 889
+        },
+        "output": {
+          "plan_id": "investigation_plan_asset_B211_radial_trend",
+          "objectives": [
+            "Obter a definicao e o contexto tecnico da tendencia radial para o redutor secundario asset_B211.",
+            "Identificar a fonte tecnica ou o documento de referencia que orienta a interpretacao da tendencia radial desde o ultimo turno."
+          ],
+          "investigation_questions": [
+            "O que significa tendencia radial para redutor secundario?",
+            "Qual fonte tecnica deve orientar a interpretacao da tendencia radial desde o ultimo turno?"
+          ],
+          "suggested_capabilities": [
+            {
+              "name": "search_industrial_knowledge"
+            },
+            {
+              "name": "get_knowledge_document"
+            },
+            {
+              "name": "get_asset_context"
+            }
+          ],
+          "dependencies": [
+            {
+              "objective_id": "identificar_fonte_tecnica",
+              "depends_on_objective_id": "obter_definicao_contexto"
+            }
+          ],
+          "missing_information": [],
+          "stopping_conditions": [
+            "A definicao de tendencia radial para o asset_B211 foi encontrada na base de conhecimento.",
+            "A fonte tecnica de orientacao para a interpretacao do turno foi identificada com sucesso."
+          ],
+          "reason_codes": [
+            "INFORMATIONAL_INTENT",
+            "READ_ONLY_INVESTIGATION"
+          ]
+        }
+      },
+      "investigator_decisions": [
+        {
+          "output": {
+            "decision_id": "dec_asset_B211_radial_trend_01",
+            "type": "tool_call",
+            "reason_codes": [
+              "INFORMATIONAL_INTENT",
+              "READ_ONLY_INVESTIGATION"
+            ],
+            "tool_request": {
+              "tool_name": "get_asset_context",
+              "arguments": {
+                "asset_id": "asset_B211"
+              }
+            }
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "USEFUL_READ_TOOL_ALLOWED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1037.386,
+              "usage": {
+                "input_tokens": 1060,
+                "output_tokens": 134,
+                "total_tokens": 1194
+              }
+            }
+          ]
+        },
+        {
+          "output": {
+            "decision_id": "dec_escalate_asset_b211_inconclusive",
+            "type": "escalate",
+            "reason_codes": [
+              "INCONCLUSIVE_EVIDENCE",
+              "CONTEXT_NOT_FOUND"
+            ],
+            "supporting_evidence_ids": [
+              "trace_syn_u_dev_0001:evidence:000001"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "SAFE_ESCALATION_ACCEPTED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1255.429,
+              "usage": {
+                "input_tokens": 1161,
+                "output_tokens": 121,
+                "total_tokens": 1282
+              }
+            }
+          ]
+        }
+      ],
+      "conclusion": null,
+      "claim_lineage": null,
+      "reporter": null,
+      "trace": [
+        {
+          "sequence": 1,
+          "event_type": "understanding_completed",
+          "details": {
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "request_class": "contextualize",
+            "entity_buckets": [
+              "assets"
+            ]
+          }
+        },
+        {
+          "sequence": 2,
+          "event_type": "planner_completed",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "suggested_capabilities": [
+              "search_industrial_knowledge",
+              "get_knowledge_document",
+              "get_asset_context"
+            ]
+          }
+        },
+        {
+          "sequence": 3,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 1
+          }
+        },
+        {
+          "sequence": 4,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 5,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 6,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "get_asset_context",
+            "argument_keys": [
+              "asset_id"
+            ]
+          }
+        },
+        {
+          "sequence": 7,
+          "event_type": "tool_started",
+          "tool_name": "get_asset_context",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 8,
+          "event_type": "tool_completed",
+          "tool_name": "get_asset_context",
+          "operation_kind": "READ",
+          "duration_ms": 29.84,
+          "evidence_status": "inconclusive"
+        },
+        {
+          "sequence": 9,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0001:call:000001",
+            "tool_name": "get_asset_context",
+            "evidence_status": "inconclusive"
+          }
+        },
+        {
+          "sequence": 10,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 2
+          }
+        },
+        {
+          "sequence": 11,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 12,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "escalate",
+            "proposed_type": "escalate",
+            "policy_reason": "SAFE_ESCALATION_ACCEPTED"
+          }
+        },
+        {
+          "sequence": 13,
+          "event_type": "terminal_state_reached",
+          "details": {
+            "terminal_status": "SAFE_ESCALATION",
+            "failure_category": null,
+            "phase": "human_required"
+          }
+        }
+      ],
+      "evidence_ledger": [
+        {
+          "evidence_id": "trace_syn_u_dev_0001:evidence:000001",
+          "source_call_id": "trace_syn_u_dev_0001:call:000001",
+          "source_trace_sequence": 8,
+          "tool_name": "get_asset_context",
+          "client_operation": "get_asset",
+          "arguments": {
+            "asset_id": "asset_B211"
+          },
+          "evidence_status": "inconclusive",
+          "method": "GET",
+          "path": "/assets/asset_B211",
+          "notes": "Resultado inconclusivo: dados insuficientes para concluir.",
+          "data": {
+            "inconclusive": true
+          }
+        }
+      ],
+      "terminal_status": "SAFE_ESCALATION",
+      "failure_category": null,
+      "coverage": {
+        "alignment": "PARTIALLY_ALIGNED",
+        "grounded_answer_reachable": false,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API",
+          "GROUNDED_ANSWER_NOT_REACHABLE_FROM_ASSET_RECORD"
+        ]
+      },
+      "errors": [],
+      "duration_ms": 6474.746
+    },
+    "syn_u_dev_0011": {
+      "illustrates": [
+        "awaiting_information"
+      ],
+      "sample_id": "syn_u_dev_0011",
+      "training_tags": [
+        "investigate",
+        "easy",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "request": {
+        "message": "Você consegue verificar se a mudança de espectro axial em exaustor asset_S425, após a limpeza, desde o último turno representa desvio real ou limitação dos dados.",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_04",
+          "asset_refs": [
+            "asset_S425"
+          ],
+          "role": "maintenance_analyst",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "understanding": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "prompt_version": "understanding_prompt_v2",
+        "schema_valid": true,
+        "finish_reason": "stop",
+        "latency_ms": 2747.945,
+        "usage": {
+          "input_tokens": 2497,
+          "output_tokens": 1156,
+          "total_tokens": 3653
+        },
+        "output": {
+          "request_class": "investigate",
+          "intents": [
+            {
+              "intent_id": "i1",
+              "kind": "investigative",
+              "summary": "Verificar se mudança de espectro axial em exaustor asset_S425 após limpeza desde o último turno representa desvio real ou limitação dos dados",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "determinar se a mudança indica desvio real ou limitação de dados"
+            }
+          ],
+          "questions": [
+            {
+              "question_id": "q1",
+              "text": "A mudança de espectro axial após a limpeza desde o último turno indica um desvio real?",
+              "kind": "diagnosis",
+              "depends_on": "…[2 itens omitidos]"
+            },
+            {
+              "question_id": "q2",
+              "text": "A mudança pode ser causada por limitação dos dados?",
+              "kind": "diagnosis",
+              "depends_on": "…[2 itens omitidos]"
+            }
+          ],
+          "entities": {
+            "assets": [
+              "asset_S425"
+            ],
+            "analyses": [],
+            "models": [],
+            "technical_terms": [
+              "espectro axial"
+            ],
+            "temporal_references": [
+              "desde o último turno",
+              "após a limpeza"
+            ]
+          },
+          "investigation_targets": [
+            "asset context",
+            "spectrum",
+            "data quality",
+            "…[+2 itens]"
+          ],
+          "missing_information": [
+            {
+              "field": "time_window",
+              "reason_code": "MISSING_TIME_WINDOW",
+              "blocking": true,
+              "suggested_question": "Qual foi o intervalo de tempo (por exemplo, horário do último turno) que deve ser considerado para a análise?"
+            }
+          ],
+          "requested_actions": [],
+          "constraints": {
+            "tenant_scope_known": true,
+            "permissions_known": true,
+            "action_execution_allowed": false
+          },
+          "confidence": 0.93
+        }
+      },
+      "planner": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "prompt_version": "e2e_planner_v1",
+        "schema_valid": true,
+        "finish_reason": "STOP",
+        "latency_ms": 1768.687,
+        "usage": {
+          "input_tokens": 568,
+          "output_tokens": 308,
+          "total_tokens": 876
+        },
+        "output": {
+          "plan_id": "investigation_asset_S425_axial_spectrum_shift",
+          "objectives": [
+            "Obter o contexto e histórico recente do exaustor asset_S425 para entender a intervenção de limpeza",
+            "Analisar o espectro axial e os dados de qualidade para verificar se a mudança é real ou um artefato de dados"
+          ],
+          "investigation_questions": [
+            "A mudança de espectro axial após a limpeza desde o último turno indica um desvio real?",
+            "A mudança pode ser causada por limitação dos dados?"
+          ],
+          "suggested_capabilities": [
+            {
+              "name": "get_asset_context"
+            },
+            {
+              "name": "get_asset_spectrum"
+            },
+            {
+              "name": "get_asset_data_quality"
+            }
+          ],
+          "dependencies": [],
+          "missing_information": [
+            "Qual foi o intervalo de tempo (por exemplo, horário do último turno) que deve ser considerado para a análise?"
+          ],
+          "stopping_conditions": [
+            "O espectro axial e os dados de qualidade foram analisados para determinar a origem da mudança no asset_S425."
+          ],
+          "reason_codes": [
+            "MISSING_TIME_WINDOW"
+          ]
+        }
+      },
+      "investigator_decisions": [
+        {
+          "output": {
+            "decision_id": "dec_ask_time_window_001",
+            "type": "ask_user",
+            "reason_codes": [
+              "MISSING_TIME_WINDOW"
+            ],
+            "required_information": [
+              "Qual foi o intervalo de tempo (por exemplo, horário do último turno) que deve ser considerado para a análise?"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "EXTERNAL_INFORMATION_REQUIRED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1089.519,
+              "usage": {
+                "input_tokens": 1065,
+                "output_tokens": 85,
+                "total_tokens": 1150
+              }
+            }
+          ]
+        }
+      ],
+      "conclusion": null,
+      "claim_lineage": null,
+      "reporter": null,
+      "trace": [
+        {
+          "sequence": 1,
+          "event_type": "understanding_completed",
+          "details": {
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "request_class": "investigate",
+            "entity_buckets": [
+              "assets"
+            ]
+          }
+        },
+        {
+          "sequence": 2,
+          "event_type": "planner_completed",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "suggested_capabilities": [
+              "get_asset_context",
+              "get_asset_spectrum",
+              "get_asset_data_quality"
+            ]
+          }
+        },
+        {
+          "sequence": 3,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 1
+          }
+        },
+        {
+          "sequence": 4,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 5,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "ask_user",
+            "proposed_type": "ask_user",
+            "policy_reason": "EXTERNAL_INFORMATION_REQUIRED"
+          }
+        },
+        {
+          "sequence": 6,
+          "event_type": "terminal_state_reached",
+          "details": {
+            "terminal_status": "AWAITING_REQUIRED_INFORMATION",
+            "failure_category": null,
+            "phase": "awaiting_user"
+          }
+        }
+      ],
+      "evidence_ledger": [],
+      "terminal_status": "AWAITING_REQUIRED_INFORMATION",
+      "failure_category": null,
+      "coverage": {
+        "alignment": "PARTIALLY_ALIGNED",
+        "grounded_answer_reachable": true,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API"
+        ]
+      },
+      "errors": [],
+      "duration_ms": 5624.57
+    },
+    "syn_u_dev_0005": {
+      "illustrates": [
+        "evidence_partial"
+      ],
+      "sample_id": "syn_u_dev_0005",
+      "training_tags": [
+        "contextualize",
+        "easy",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "request": {
+        "message": "Antes de concluir, verifique o que significa vibração RMS para misturador asset_S425 na partida a frio e qual fonte técnica deve orientar a interpretação desde a troca de carga?",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_05",
+          "asset_refs": [
+            "asset_S425"
+          ],
+          "role": "maintenance_analyst",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "understanding": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "prompt_version": "understanding_prompt_v2",
+        "schema_valid": true,
+        "finish_reason": "stop",
+        "latency_ms": 2925.497,
+        "usage": {
+          "input_tokens": 2497,
+          "output_tokens": 1230,
+          "total_tokens": 3727
+        },
+        "output": {
+          "request_class": "contextualize",
+          "intents": [
+            {
+              "intent_id": "i1",
+              "kind": "informational",
+              "summary": "Significado de vibração RMS para misturador asset_S425 na partida a frio",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "Obter definição de vibração RMS"
+            },
+            {
+              "intent_id": "i2",
+              "kind": "informational",
+              "summary": "Fonte técnica para orientar interpretação da vibração RMS na troca de carga",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "Identificar fonte técnica apropriada"
+            }
+          ],
+          "questions": [
+            {
+              "question_id": "q1",
+              "text": "O que significa vibração RMS para misturador asset_S425 na partida a frio?",
+              "kind": "fact",
+              "depends_on": "…[0 itens omitidos]"
+            },
+            {
+              "question_id": "q2",
+              "text": "Qual fonte técnica deve orientar a interpretação da vibração RMS desde a troca de carga?",
+              "kind": "procedure",
+              "depends_on": "…[0 itens omitidos]"
+            }
+          ],
+          "entities": {
+            "assets": [
+              "asset_S425"
+            ],
+            "analyses": [],
+            "models": [],
+            "technical_terms": [
+              "vibração RMS",
+              "partida a frio",
+              "troca de carga"
+            ],
+            "temporal_references": []
+          },
+          "investigation_targets": [
+            "asset context",
+            "industrial knowledge"
+          ],
+          "missing_information": [],
+          "requested_actions": [],
+          "constraints": {
+            "tenant_scope_known": true,
+            "permissions_known": true,
+            "action_execution_allowed": false
+          },
+          "confidence": 0.97
+        }
+      },
+      "planner": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "prompt_version": "e2e_planner_v1",
+        "schema_valid": true,
+        "finish_reason": "STOP",
+        "latency_ms": 4060.934,
+        "usage": {
+          "input_tokens": 532,
+          "output_tokens": 360,
+          "total_tokens": 892
+        },
+        "output": {
+          "plan_id": "plan_vibration_rms_asset_S425",
+          "objectives": [
+            "Investigar o significado e o comportamento esperado da vibração RMS para o misturador asset_S425 durante a partida a frio.",
+            "Identificar a fonte técnica ou documentação apropriada para orientar a interpretação da vibração RMS na operação e na troca de carga do ativo."
+          ],
+          "investigation_questions": [
+            "O que significa vibração RMS para misturador asset_S425 na partida a frio?",
+            "Qual fonte técnica deve orientar a interpretação da vibração RMS desde a troca de carga?"
+          ],
+          "suggested_capabilities": [
+            {
+              "name": "get_asset_context"
+            },
+            {
+              "name": "get_asset_rms"
+            },
+            {
+              "name": "search_industrial_knowledge"
+            }
+          ],
+          "dependencies": [
+            {
+              "objective_id": "2",
+              "depends_on_objective_id": "1"
+            }
+          ],
+          "missing_information": [],
+          "stopping_conditions": [
+            "A definição de vibração RMS para a partida a frio do ativo asset_S425 foi obtida.",
+            "A fonte técnica de orientação para a troca de carga foi identificada."
+          ],
+          "reason_codes": [
+            "ASSET_CONTEXT_RETRIEVED",
+            "KNOWLEDGE_SEARCH_COMPLETED"
+          ]
+        }
+      },
+      "investigator_decisions": [
+        {
+          "output": {
+            "decision_id": "dec_tool_call_asset_S425_context",
+            "type": "tool_call",
+            "reason_codes": [
+              "ASSET_CONTEXT_RETRIEVED"
+            ],
+            "tool_request": {
+              "tool_name": "get_asset_context",
+              "arguments": {
+                "asset_id": "asset_S425"
+              }
+            }
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "USEFUL_READ_TOOL_ALLOWED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1070.666,
+              "usage": {
+                "input_tokens": 1063,
+                "output_tokens": 127,
+                "total_tokens": 1190
+              }
+            }
+          ]
+        },
+        {
+          "output": {
+            "decision_id": "dec_tool_call_get_asset_rms_001",
+            "type": "tool_call",
+            "reason_codes": [
+              "ASSET_CONTEXT_RETRIEVED",
+              "NEED_VIBRATION_RMS_DATA"
+            ],
+            "tool_request": {
+              "tool_name": "get_asset_rms",
+              "arguments": {
+                "asset_id": "asset_S425"
+              }
+            },
+            "supporting_evidence_ids": [
+              "trace_syn_u_dev_0005:evidence:000001"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "USEFUL_READ_TOOL_ALLOWED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 7246.369,
+              "usage": {
+                "input_tokens": 1363,
+                "output_tokens": 169,
+                "total_tokens": 1532
+              }
+            }
+          ]
+        },
+        {
+          "output": {
+            "decision_id": "dec_search_knowledge_001",
+            "type": "tool_call",
+            "reason_codes": [
+              "NEED_INDUSTRIAL_KNOWLEDGE_FOR_RMS_COLD_START"
+            ],
+            "tool_request": {
+              "tool_name": "search_industrial_knowledge",
+              "arguments": {
+                "query": "vibração RMS partida a frio misturador asset_S425"
+              }
+            },
+            "supporting_evidence_ids": [
+              "trace_syn_u_dev_0005:evidence:000001",
+              "trace_syn_u_dev_0005:evidence:000002"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "USEFUL_READ_TOOL_ALLOWED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1078.381,
+              "usage": {
+                "input_tokens": 1496,
+                "output_tokens": 188,
+                "total_tokens": 1684
+              }
+            }
+          ]
+        },
+        {
+          "output": {
+            "decision_id": "dec_escalate_s425_knowledge",
+            "type": "escalate",
+            "reason_codes": [
+              "INDUSTRIAL_KNOWLEDGE_SEARCH_EMPTY",
+              "INSUFFICIENT_TECHNICAL_GUIDANCE"
+            ],
+            "supporting_evidence_ids": [
+              "trace_syn_u_dev_0005:evidence:000003"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "SAFE_ESCALATION_ACCEPTED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1019.565,
+              "usage": {
+                "input_tokens": 1570,
+                "output_tokens": 123,
+                "total_tokens": 1693
+              }
+            }
+          ]
+        }
+      ],
+      "conclusion": null,
+      "claim_lineage": null,
+      "reporter": null,
+      "trace": [
+        {
+          "sequence": 1,
+          "event_type": "understanding_completed",
+          "details": {
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "request_class": "contextualize",
+            "entity_buckets": [
+              "assets"
+            ]
+          }
+        },
+        {
+          "sequence": 2,
+          "event_type": "planner_completed",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "suggested_capabilities": [
+              "get_asset_context",
+              "get_asset_rms",
+              "search_industrial_knowledge"
+            ]
+          }
+        },
+        {
+          "sequence": 3,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 1
+          }
+        },
+        {
+          "sequence": 4,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 5,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 6,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "get_asset_context",
+            "argument_keys": [
+              "asset_id"
+            ]
+          }
+        },
+        {
+          "sequence": 7,
+          "event_type": "tool_started",
+          "tool_name": "get_asset_context",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 8,
+          "event_type": "tool_completed",
+          "tool_name": "get_asset_context",
+          "operation_kind": "READ",
+          "duration_ms": 44.129,
+          "evidence_status": "complete"
+        },
+        {
+          "sequence": 9,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0005:call:000001",
+            "tool_name": "get_asset_context",
+            "evidence_status": "complete"
+          }
+        },
+        {
+          "sequence": 10,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 2
+          }
+        },
+        {
+          "sequence": 11,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 12,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 13,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "get_asset_rms",
+            "argument_keys": [
+              "asset_id"
+            ]
+          }
+        },
+        {
+          "sequence": 14,
+          "event_type": "tool_started",
+          "tool_name": "get_asset_rms",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 15,
+          "event_type": "tool_completed",
+          "tool_name": "get_asset_rms",
+          "operation_kind": "READ",
+          "duration_ms": 34.482,
+          "evidence_status": "partial"
+        },
+        {
+          "sequence": 16,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0005:call:000002",
+            "tool_name": "get_asset_rms",
+            "evidence_status": "partial"
+          }
+        },
+        {
+          "sequence": 17,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 3
+          }
+        },
+        {
+          "sequence": 18,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 19,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 20,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "search_industrial_knowledge",
+            "argument_keys": [
+              "query"
+            ]
+          }
+        },
+        {
+          "sequence": 21,
+          "event_type": "tool_started",
+          "tool_name": "search_industrial_knowledge",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 22,
+          "event_type": "tool_completed",
+          "tool_name": "search_industrial_knowledge",
+          "operation_kind": "READ",
+          "duration_ms": 22.121,
+          "evidence_status": "complete"
+        },
+        {
+          "sequence": 23,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0005:call:000003",
+            "tool_name": "search_industrial_knowledge",
+            "evidence_status": "complete"
+          }
+        },
+        {
+          "sequence": 24,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 4
+          }
+        },
+        {
+          "sequence": 25,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 26,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "escalate",
+            "proposed_type": "escalate",
+            "policy_reason": "SAFE_ESCALATION_ACCEPTED"
+          }
+        },
+        {
+          "sequence": 27,
+          "event_type": "terminal_state_reached",
+          "details": {
+            "terminal_status": "SAFE_ESCALATION",
+            "failure_category": null,
+            "phase": "human_required"
+          }
+        }
+      ],
+      "evidence_ledger": [
+        {
+          "evidence_id": "trace_syn_u_dev_0005:evidence:000001",
+          "source_call_id": "trace_syn_u_dev_0005:call:000001",
+          "source_trace_sequence": 8,
+          "tool_name": "get_asset_context",
+          "client_operation": "get_asset",
+          "arguments": {
+            "asset_id": "asset_S425"
+          },
+          "evidence_status": "complete",
+          "method": "GET",
+          "path": "/assets/asset_S425",
+          "notes": null,
+          "data": {
+            "id": "asset_S425",
+            "name": "Spindle secundário",
+            "company_id": "comp_acme",
+            "criticality": "medium",
+            "plant": "Planta 1",
+            "line": "Usinagem",
+            "parent_asset_id": null,
+            "machine_type": "spindle",
+            "rotation_rpm": 9000,
+            "bearing_pn": "7006",
+            "bpfo_hz": 541.2,
+            "bpfi_hz": 823.7,
+            "bsf_hz": 234.6,
+            "ftf_hz": 36.1,
+            "line_frequency_hz": null,
+            "sensor_status": "online",
+            "points": [
+              {
+                "id": "pt_S425_de",
+                "asset_id": "asset_S425",
+                "location": "DE",
+                "sensor_status": "online"
+              }
+            ]
+          }
+        },
+        {
+          "evidence_id": "trace_syn_u_dev_0005:evidence:000002",
+          "source_call_id": "trace_syn_u_dev_0005:call:000002",
+          "source_trace_sequence": 15,
+          "tool_name": "get_asset_rms",
+          "client_operation": "get_rms",
+          "arguments": {
+            "asset_id": "asset_S425"
+          },
+          "evidence_status": "partial",
+          "method": "GET",
+          "path": "/assets/asset_S425/rms",
+          "notes": "Informação parcial: campos ausentes ['samples']",
+          "data": {
+            "asset_id": "asset_S425",
+            "point_id": "pt_S425_de",
+            "unit": "mm/s",
+            "baseline_reference": 1.1,
+            "baseline_state": "established",
+            "alarm_threshold": 1.6
+          }
+        },
+        {
+          "evidence_id": "trace_syn_u_dev_0005:evidence:000003",
+          "source_call_id": "trace_syn_u_dev_0005:call:000003",
+          "source_trace_sequence": 22,
+          "tool_name": "search_industrial_knowledge",
+          "client_operation": "search_knowledge",
+          "arguments": {
+            "query": "vibração RMS partida a frio misturador asset_S425"
+          },
+          "evidence_status": "complete",
+          "method": "GET",
+          "path": "/knowledge/search",
+          "notes": null,
+          "data": {
+            "results": []
+          }
+        }
+      ],
+      "terminal_status": "SAFE_ESCALATION",
+      "failure_category": null,
+      "coverage": {
+        "alignment": "MISALIGNED",
+        "grounded_answer_reachable": true,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "DESCRIPTOR_CONTRADICTS_API_RECORD",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API"
+        ]
+      },
+      "errors": [],
+      "duration_ms": 17569.566
+    },
+    "syn_u_dev_0003": {
+      "illustrates": [
+        "evidence_conflict"
+      ],
+      "sample_id": "syn_u_dev_0003",
+      "training_tags": [
+        "contextualize",
+        "easy",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "request": {
+        "message": "Pode confirmar com os dados o que significa temperatura do mancal para spindle de acabamento asset_X216 com carga variável e qual fonte técnica deve orientar a interpretação nesta semana?",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_03",
+          "asset_refs": [
+            "asset_X216"
+          ],
+          "role": "reliability_engineer",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "understanding": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "prompt_version": "understanding_prompt_v2",
+        "schema_valid": true,
+        "finish_reason": "stop",
+        "latency_ms": 2266.851,
+        "usage": {
+          "input_tokens": 2494,
+          "output_tokens": 906,
+          "total_tokens": 3400
+        },
+        "output": {
+          "request_class": "contextualize",
+          "intents": [
+            {
+              "intent_id": "i1",
+              "kind": "informational",
+              "summary": "Entender o que significa temperatura do mancal para spindle de acabamento no asset_X216",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "Obter definição e contexto da temperatura do mancal para spindle de acabamento com carga variável"
+            },
+            {
+              "intent_id": "i2",
+              "kind": "informational",
+              "summary": "Identificar a fonte técnica que deve orientar a interpretação da temperatura do mancal nesta semana",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "Saber qual documento ou referência técnica consultar para interpretar a temperatura do mancal"
+            }
+          ],
+          "questions": [
+            {
+              "question_id": "q1",
+              "text": "O que significa temperatura do mancal para spindle de acabamento?",
+              "kind": "clarification",
+              "depends_on": "…[0 itens omitidos]"
+            },
+            {
+              "question_id": "q2",
+              "text": "Qual fonte técnica deve orientar a interpretação desta temperatura nesta semana?",
+              "kind": "clarification",
+              "depends_on": "…[0 itens omitidos]"
+            }
+          ],
+          "entities": {
+            "assets": [
+              "asset_X216"
+            ],
+            "analyses": [],
+            "models": [],
+            "technical_terms": [
+              "temperatura do mancal",
+              "spindle de acabamento"
+            ],
+            "temporal_references": [
+              "nesta semana"
+            ]
+          },
+          "investigation_targets": [
+            "asset context",
+            "industrial knowledge"
+          ],
+          "missing_information": [],
+          "requested_actions": [],
+          "constraints": {
+            "tenant_scope_known": true,
+            "permissions_known": true,
+            "action_execution_allowed": false
+          },
+          "confidence": 0.97
+        }
+      },
+      "planner": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "prompt_version": "e2e_planner_v1",
+        "schema_valid": true,
+        "finish_reason": "STOP",
+        "latency_ms": 1680.195,
+        "usage": {
+          "input_tokens": 546,
+          "output_tokens": 363,
+          "total_tokens": 909
+        },
+        "output": {
+          "plan_id": "plan_bearing_temp_X216",
+          "objectives": [
+            "Obter definição e contexto da temperatura do mancal para spindle de acabamento com carga variável no asset_X216",
+            "Identificar a fonte técnica que deve orientar a interpretação da temperatura do mancal nesta semana"
+          ],
+          "investigation_questions": [
+            "O que significa temperatura do mancal para spindle de acabamento?",
+            "Qual fonte técnica deve orientar a interpretação desta temperatura nesta semana?"
+          ],
+          "suggested_capabilities": [
+            {
+              "name": "get_asset_context"
+            },
+            {
+              "name": "search_industrial_knowledge"
+            },
+            {
+              "name": "get_knowledge_document"
+            }
+          ],
+          "dependencies": [
+            {
+              "objective_id": "Obter definição e contexto da temperatura do mancal para spindle de acabamento com carga variável no asset_X216",
+              "depends_on_objective_id": "Identificar a fonte técnica que deve orientar a interpretação da temperatura do mancal nesta semana"
+            }
+          ],
+          "missing_information": [],
+          "stopping_conditions": [
+            "A definição clara do significado da temperatura do mancal para o spindle de acabamento foi encontrada.",
+            "A fonte técnica de orientação para a interpretação foi identificada com sucesso."
+          ],
+          "reason_codes": [
+            "CONTEXT_GATHERING",
+            "KNOWLEDGE_SEARCH"
+          ]
+        }
+      },
+      "investigator_decisions": [
+        {
+          "output": {
+            "decision_id": "dec_bearing_temp_001",
+            "type": "tool_call",
+            "reason_codes": [
+              "CONTEXT_GATHERING",
+              "KNOWLEDGE_SEARCH"
+            ],
+            "tool_request": {
+              "tool_name": "get_asset_context",
+              "arguments": {
+                "asset_id": "asset_X216"
+              }
+            }
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "USEFUL_READ_TOOL_ALLOWED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1209.133,
+              "usage": {
+                "input_tokens": 1080,
+                "output_tokens": 126,
+                "total_tokens": 1206
+              }
+            }
+          ]
+        },
+        {
+          "output": {
+            "decision_id": "dec_bearing_temp_002",
+            "type": "tool_call",
+            "reason_codes": [
+              "KNOWLEDGE_SEARCH",
+              "NEED_TECHNICAL_DOCUMENT"
+            ],
+            "tool_request": {
+              "tool_name": "search_industrial_knowledge",
+              "arguments": {
+                "query": "temperatura do mancal spindle de acabamento carga variavel"
+              }
+            },
+            "supporting_evidence_ids": [
+              "trace_syn_u_dev_0003:evidence:000001"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "USEFUL_READ_TOOL_ALLOWED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 4347.774,
+              "usage": {
+                "input_tokens": 1376,
+                "output_tokens": 158,
+                "total_tokens": 1534
+              }
+            }
+          ]
+        },
+        {
+          "output": {
+            "decision_id": "dec_escalate_conflicting_evidence_01",
+            "type": "escalate",
+            "reason_codes": [
+              "CONFLICTING_EVIDENCE"
+            ],
+            "supporting_evidence_ids": [
+              "trace_syn_u_dev_0003:evidence:000002"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "SAFE_ESCALATION_ACCEPTED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 991.685,
+              "usage": {
+                "input_tokens": 1454,
+                "output_tokens": 108,
+                "total_tokens": 1562
+              }
+            }
+          ]
+        }
+      ],
+      "conclusion": null,
+      "claim_lineage": null,
+      "reporter": null,
+      "trace": [
+        {
+          "sequence": 1,
+          "event_type": "understanding_completed",
+          "details": {
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "request_class": "contextualize",
+            "entity_buckets": [
+              "assets"
+            ]
+          }
+        },
+        {
+          "sequence": 2,
+          "event_type": "planner_completed",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "suggested_capabilities": [
+              "get_asset_context",
+              "search_industrial_knowledge",
+              "get_knowledge_document"
+            ]
+          }
+        },
+        {
+          "sequence": 3,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 1
+          }
+        },
+        {
+          "sequence": 4,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 5,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 6,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "get_asset_context",
+            "argument_keys": [
+              "asset_id"
+            ]
+          }
+        },
+        {
+          "sequence": 7,
+          "event_type": "tool_started",
+          "tool_name": "get_asset_context",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 8,
+          "event_type": "tool_completed",
+          "tool_name": "get_asset_context",
+          "operation_kind": "READ",
+          "duration_ms": 25.747,
+          "evidence_status": "complete"
+        },
+        {
+          "sequence": 9,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0003:call:000001",
+            "tool_name": "get_asset_context",
+            "evidence_status": "complete"
+          }
+        },
+        {
+          "sequence": 10,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 2
+          }
+        },
+        {
+          "sequence": 11,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 12,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 13,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "search_industrial_knowledge",
+            "argument_keys": [
+              "query"
+            ]
+          }
+        },
+        {
+          "sequence": 14,
+          "event_type": "tool_started",
+          "tool_name": "search_industrial_knowledge",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 15,
+          "event_type": "tool_completed",
+          "tool_name": "search_industrial_knowledge",
+          "operation_kind": "READ",
+          "duration_ms": 25.744,
+          "evidence_status": "conflict"
+        },
+        {
+          "sequence": 16,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0003:call:000002",
+            "tool_name": "search_industrial_knowledge",
+            "evidence_status": "conflict"
+          }
+        },
+        {
+          "sequence": 17,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 3
+          }
+        },
+        {
+          "sequence": 18,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 19,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "escalate",
+            "proposed_type": "escalate",
+            "policy_reason": "SAFE_ESCALATION_ACCEPTED"
+          }
+        },
+        {
+          "sequence": 20,
+          "event_type": "terminal_state_reached",
+          "details": {
+            "terminal_status": "SAFE_ESCALATION",
+            "failure_category": null,
+            "phase": "human_required"
+          }
+        }
+      ],
+      "evidence_ledger": [
+        {
+          "evidence_id": "trace_syn_u_dev_0003:evidence:000001",
+          "source_call_id": "trace_syn_u_dev_0003:call:000001",
+          "source_trace_sequence": 8,
+          "tool_name": "get_asset_context",
+          "client_operation": "get_asset",
+          "arguments": {
+            "asset_id": "asset_X216"
+          },
+          "evidence_status": "complete",
+          "method": "GET",
+          "path": "/assets/asset_X216",
+          "notes": null,
+          "data": {
+            "id": "asset_X216",
+            "name": "Misturador de cru",
+            "company_id": "comp_cimento_vale",
+            "criticality": "medium",
+            "plant": "Planta 1",
+            "line": "Moagem",
+            "parent_asset_id": null,
+            "machine_type": "mill",
+            "rotation_rpm": 320,
+            "bearing_pn": "22226",
+            "bpfo_hz": 55.3,
+            "bpfi_hz": 80.1,
+            "bsf_hz": 32.9,
+            "ftf_hz": 6.6,
+            "line_frequency_hz": null,
+            "sensor_status": "online",
+            "points": [
+              {
+                "id": "pt_X216_de",
+                "asset_id": "asset_X216",
+                "location": "DE",
+                "sensor_status": "online"
+              }
+            ]
+          }
+        },
+        {
+          "evidence_id": "trace_syn_u_dev_0003:evidence:000002",
+          "source_call_id": "trace_syn_u_dev_0003:call:000002",
+          "source_trace_sequence": 15,
+          "tool_name": "search_industrial_knowledge",
+          "client_operation": "search_knowledge",
+          "arguments": {
+            "query": "temperatura do mancal spindle de acabamento carga variavel"
+          },
+          "evidence_status": "conflict",
+          "method": "GET",
+          "path": "/knowledge/search",
+          "notes": "Conflito entre fontes: verifique análises especializadas.",
+          "data": {
+            "results": [],
+            "conflict": true
+          }
+        }
+      ],
+      "terminal_status": "SAFE_ESCALATION",
+      "failure_category": null,
+      "coverage": {
+        "alignment": "MISALIGNED",
+        "grounded_answer_reachable": true,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "DESCRIPTOR_CONTRADICTS_API_RECORD",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API"
+        ]
+      },
+      "errors": [],
+      "duration_ms": 10600.407
+    },
+    "syn_u_dev_0015": {
+      "illustrates": [
+        "evidence_unavailable"
+      ],
+      "sample_id": "syn_u_dev_0015",
+      "training_tags": [
+        "investigate",
+        "medium",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "request": {
+        "message": "Antes de concluir, verifique se a mudança de tendência radial em ventilador de resfriamento asset_X216, após inspeção de rotina, nesta semana representa desvio real ou limitação dos dados.",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_01",
+          "asset_refs": [
+            "asset_X216"
+          ],
+          "role": "reliability_engineer",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "understanding": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "prompt_version": "understanding_prompt_v2",
+        "schema_valid": true,
+        "finish_reason": "stop",
+        "latency_ms": 3092.829,
+        "usage": {
+          "input_tokens": 2502,
+          "output_tokens": 1297,
+          "total_tokens": 3799
+        },
+        "output": {
+          "request_class": "investigate",
+          "intents": [
+            {
+              "intent_id": "i1",
+              "kind": "investigative",
+              "summary": "Verificar se a mudança de tendência radial no ventilador de resfriamento do asset_X216 representa um desvio real ou limitação dos dados",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "determinar se há desvio real ou limitação de dados"
+            }
+          ],
+          "questions": [
+            {
+              "question_id": "q1",
+              "text": "A mudança de tendência radial no ventilador de resfriamento do asset_X216 representa um desvio real?",
+              "kind": "diagnosis",
+              "depends_on": "…[1 itens omitidos]"
+            },
+            {
+              "question_id": "q2",
+              "text": "A mudança de tendência radial no ventilador de resfriamento do asset_X216 é causada por limitação dos dados?",
+              "kind": "diagnosis",
+              "depends_on": "…[1 itens omitidos]"
+            }
+          ],
+          "entities": {
+            "assets": [
+              "asset_X216"
+            ],
+            "analyses": [],
+            "models": [],
+            "technical_terms": [
+              "tendência radial",
+              "ventilador de resfriamento"
+            ],
+            "temporal_references": [
+              "nesta semana"
+            ]
+          },
+          "investigation_targets": [
+            "asset context",
+            "analysis evidence",
+            "data quality"
+          ],
+          "missing_information": [
+            {
+              "field": "time_window",
+              "reason_code": "MISSING_TIME_WINDOW",
+              "blocking": false,
+              "suggested_question": "Qual o intervalo de tempo exato (datas) da semana em questão?"
+            },
+            {
+              "field": "measurement_point",
+              "reason_code": "AMBIGUOUS_SENSOR_POINT",
+              "blocking": false,
+              "suggested_question": "Qual ponto de medição específico do ventilador de resfriamento deve ser analisado?"
+            }
+          ],
+          "requested_actions": [],
+          "constraints": {
+            "tenant_scope_known": true,
+            "permissions_known": true,
+            "action_execution_allowed": false
+          },
+          "confidence": 0.93
+        }
+      },
+      "planner": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "prompt_version": "e2e_planner_v1",
+        "schema_valid": true,
+        "finish_reason": "STOP",
+        "latency_ms": 1794.237,
+        "usage": {
+          "input_tokens": 616,
+          "output_tokens": 429,
+          "total_tokens": 1045
+        },
+        "output": {
+          "plan_id": "investigate_asset_X216_cooling_fan",
+          "objectives": [
+            "Determine if the radial trend shift in the cooling fan of asset_X216 is a real physical deviation.",
+            "Assess whether the radial trend shift is caused by data limitations or sensor issues."
+          ],
+          "investigation_questions": [
+            "A mudança de tendência radial no ventilador de resfriamento do asset_X216 representa um desvio real?",
+            "A mudança de tendência radial no ventilador de resfriamento do asset_X216 é causada por limitação dos dados?"
+          ],
+          "suggested_capabilities": [
+            {
+              "name": "get_asset_context"
+            },
+            {
+              "name": "list_asset_analyses"
+            },
+            {
+              "name": "get_analysis_details"
+            },
+            "…[+2 itens]"
+          ],
+          "dependencies": [
+            {
+              "objective_id": "2",
+              "depends_on_objective_id": "1"
+            }
+          ],
+          "missing_information": [
+            "Qual o intervalo de tempo exato (datas) da semana em questão?",
+            "Qual ponto de medição específico do ventilador de resfriamento deve ser analisado?"
+          ],
+          "stopping_conditions": [
+            "Sufficient evidence is gathered to confirm either a real physical asset anomaly or a data quality artifact.",
+            "All available asset analyses and data quality checks for asset_X216 have been exhausted."
+          ],
+          "reason_codes": [
+            "MISSING_TIME_WINDOW",
+            "AMBIGUOUS_SENSOR_POINT"
+          ]
+        }
+      },
+      "investigator_decisions": [
+        {
+          "output": {
+            "decision_id": "dec_investigate_asset_X216_context",
+            "type": "tool_call",
+            "reason_codes": [
+              "MISSING_ASSET_CONTEXT",
+              "INITIAL_INVESTIGATION"
+            ],
+            "tool_request": {
+              "tool_name": "get_asset_context",
+              "arguments": {
+                "asset_id": "asset_X216"
+              }
+            }
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "USEFUL_READ_TOOL_ALLOWED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1134.836,
+              "usage": {
+                "input_tokens": 1193,
+                "output_tokens": 132,
+                "total_tokens": 1325
+              }
+            }
+          ]
+        },
+        {
+          "output": {
+            "decision_id": "dec_list_asset_analyses_001",
+            "type": "tool_call",
+            "reason_codes": [
+              "NEED_ASSET_ANALYSES"
+            ],
+            "tool_request": {
+              "tool_name": "list_asset_analyses",
+              "arguments": {
+                "asset_id": "asset_X216"
+              }
+            },
+            "supporting_evidence_ids": [
+              "trace_syn_u_dev_0015:evidence:000001"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "USEFUL_READ_TOOL_ALLOWED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1094.829,
+              "usage": {
+                "input_tokens": 1489,
+                "output_tokens": 151,
+                "total_tokens": 1640
+              }
+            }
+          ]
+        },
+        {
+          "output": {
+            "decision_id": "dec_investigate_asset_X216_analyses_001_safe_escalation",
+            "type": "escalate",
+            "reason_codes": [
+              "REPEATED_TOOL_CALL_WITHOUT_NEW_EVIDENCE"
+            ],
+            "supporting_evidence_ids": [
+              "trace_syn_u_dev_0015:evidence:000001"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": false,
+            "reason_code": "REPEATED_TOOL_CALL_WITHOUT_NEW_EVIDENCE",
+            "rejected_decision_type": "tool_call"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1170.065,
+              "usage": {
+                "input_tokens": 1560,
+                "output_tokens": 156,
+                "total_tokens": 1716
+              }
+            }
+          ]
+        }
+      ],
+      "conclusion": null,
+      "claim_lineage": null,
+      "reporter": null,
+      "trace": [
+        {
+          "sequence": 1,
+          "event_type": "understanding_completed",
+          "details": {
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "request_class": "investigate",
+            "entity_buckets": [
+              "assets"
+            ]
+          }
+        },
+        {
+          "sequence": 2,
+          "event_type": "planner_completed",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "suggested_capabilities": [
+              "get_asset_context",
+              "list_asset_analyses",
+              "get_analysis_details",
+              "…[+2 itens]"
+            ]
+          }
+        },
+        {
+          "sequence": 3,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 1
+          }
+        },
+        {
+          "sequence": 4,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 5,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 6,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "get_asset_context",
+            "argument_keys": [
+              "asset_id"
+            ]
+          }
+        },
+        {
+          "sequence": 7,
+          "event_type": "tool_started",
+          "tool_name": "get_asset_context",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 8,
+          "event_type": "tool_completed",
+          "tool_name": "get_asset_context",
+          "operation_kind": "READ",
+          "duration_ms": 63.436,
+          "evidence_status": "complete"
+        },
+        {
+          "sequence": 9,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0015:call:000001",
+            "tool_name": "get_asset_context",
+            "evidence_status": "complete"
+          }
+        },
+        {
+          "sequence": 10,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 2
+          }
+        },
+        {
+          "sequence": 11,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 12,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 13,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "list_asset_analyses",
+            "argument_keys": [
+              "asset_id"
+            ]
+          }
+        },
+        {
+          "sequence": 14,
+          "event_type": "tool_started",
+          "tool_name": "list_asset_analyses",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 15,
+          "event_type": "tool_completed",
+          "tool_name": "list_asset_analyses",
+          "operation_kind": "READ",
+          "duration_ms": 20.812,
+          "evidence_status": "unavailable"
+        },
+        {
+          "sequence": 16,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0015:call:000002",
+            "tool_name": "list_asset_analyses",
+            "evidence_status": "unavailable"
+          }
+        },
+        {
+          "sequence": 17,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 3
+          }
+        },
+        {
+          "sequence": 18,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 19,
+          "event_type": "decision_rejected",
+          "details": {
+            "decision_type": "escalate",
+            "proposed_type": "tool_call",
+            "policy_reason": "REPEATED_TOOL_CALL_WITHOUT_NEW_EVIDENCE"
+          }
+        },
+        {
+          "sequence": 20,
+          "event_type": "terminal_state_reached",
+          "details": {
+            "terminal_status": "SAFE_ESCALATION",
+            "failure_category": null,
+            "phase": "human_required"
+          }
+        }
+      ],
+      "evidence_ledger": [
+        {
+          "evidence_id": "trace_syn_u_dev_0015:evidence:000001",
+          "source_call_id": "trace_syn_u_dev_0015:call:000001",
+          "source_trace_sequence": 8,
+          "tool_name": "get_asset_context",
+          "client_operation": "get_asset",
+          "arguments": {
+            "asset_id": "asset_X216"
+          },
+          "evidence_status": "complete",
+          "method": "GET",
+          "path": "/assets/asset_X216",
+          "notes": null,
+          "data": {
+            "id": "asset_X216",
+            "name": "Misturador de cru",
+            "company_id": "comp_cimento_vale",
+            "criticality": "medium",
+            "plant": "Planta 1",
+            "line": "Moagem",
+            "parent_asset_id": null,
+            "machine_type": "mill",
+            "rotation_rpm": 320,
+            "bearing_pn": "22226",
+            "bpfo_hz": 55.3,
+            "bpfi_hz": 80.1,
+            "bsf_hz": 32.9,
+            "ftf_hz": 6.6,
+            "line_frequency_hz": null,
+            "sensor_status": "online",
+            "points": [
+              {
+                "id": "pt_X216_de",
+                "asset_id": "asset_X216",
+                "location": "DE",
+                "sensor_status": "online"
+              }
+            ]
+          }
+        },
+        {
+          "evidence_id": "trace_syn_u_dev_0015:evidence:000002",
+          "source_call_id": "trace_syn_u_dev_0015:call:000002",
+          "source_trace_sequence": 15,
+          "tool_name": "list_asset_analyses",
+          "client_operation": "list_asset_analyses",
+          "arguments": {
+            "asset_id": "asset_X216"
+          },
+          "evidence_status": "unavailable",
+          "method": "GET",
+          "path": "/assets/asset_X216/analyses",
+          "notes": "Indisponibilidade temporária: recurso não pôde ser recuperado.",
+          "data": {}
+        }
+      ],
+      "terminal_status": "SAFE_ESCALATION",
+      "failure_category": null,
+      "coverage": {
+        "alignment": "MISALIGNED",
+        "grounded_answer_reachable": true,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "DESCRIPTOR_CONTRADICTS_API_RECORD",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API"
+        ]
+      },
+      "errors": [],
+      "duration_ms": 8405.006
+    },
+    "syn_u_dev_0002": {
+      "illustrates": [
+        "descriptor_misaligned"
+      ],
+      "sample_id": "syn_u_dev_0002",
+      "training_tags": [
+        "contextualize",
+        "easy",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "request": {
+        "message": "Preciso entender o que significa qualidade do sinal para compressor de serviço asset_S425 em baixa rotação e qual fonte técnica deve orientar a interpretação depois da parada programada?",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_02",
+          "asset_refs": [
+            "asset_S425"
+          ],
+          "role": "maintenance_analyst",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "understanding": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "prompt_version": "understanding_prompt_v2",
+        "schema_valid": true,
+        "finish_reason": "stop",
+        "latency_ms": 2375.303,
+        "usage": {
+          "input_tokens": 2494,
+          "output_tokens": 940,
+          "total_tokens": 3434
+        },
+        "output": {
+          "request_class": "contextualize",
+          "intents": [
+            {
+              "intent_id": "i1",
+              "kind": "informational",
+              "summary": "Entender o que significa qualidade do sinal para compressor de serviço asset_S425 em baixa rotação",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "Obter definição e critérios de qualidade do sinal"
+            },
+            {
+              "intent_id": "i2",
+              "kind": "informational",
+              "summary": "Identificar fonte técnica que deve orientar a interpretação da qualidade do sinal após a parada programada",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "Obter referência de fonte técnica apropriada"
+            }
+          ],
+          "questions": [
+            {
+              "question_id": "q1",
+              "text": "O que significa qualidade do sinal para compressor de serviço asset_S425 em baixa rotação?",
+              "kind": "fact",
+              "depends_on": "…[1 itens omitidos]"
+            },
+            {
+              "question_id": "q2",
+              "text": "Qual fonte técnica deve orientar a interpretação da qualidade do sinal depois da parada programada?",
+              "kind": "clarification",
+              "depends_on": "…[1 itens omitidos]"
+            }
+          ],
+          "entities": {
+            "assets": [
+              "asset_S425"
+            ],
+            "analyses": [],
+            "models": [],
+            "technical_terms": [
+              "qualidade do sinal",
+              "compressor de serviço",
+              "baixa rotação",
+              "…[+1 itens]"
+            ],
+            "temporal_references": [
+              "depois da parada programada"
+            ]
+          },
+          "investigation_targets": [
+            "asset context",
+            "industrial knowledge"
+          ],
+          "missing_information": [],
+          "requested_actions": [],
+          "constraints": {
+            "tenant_scope_known": true,
+            "permissions_known": true,
+            "action_execution_allowed": false
+          },
+          "confidence": 0.97
+        }
+      },
+      "planner": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "prompt_version": "e2e_planner_v1",
+        "schema_valid": true,
+        "finish_reason": "STOP",
+        "latency_ms": 1642.564,
+        "usage": {
+          "input_tokens": 570,
+          "output_tokens": 331,
+          "total_tokens": 901
+        },
+        "output": {
+          "plan_id": "investigation_plan_asset_S425",
+          "objectives": [
+            "Investigate the definition and criteria of signal quality for compressor asset_S425 operating at low rotation.",
+            "Identify the appropriate technical source or documentation to guide the interpretation of signal quality after the scheduled shutdown."
+          ],
+          "investigation_questions": [
+            "What does signal quality mean for compressor asset_S425 in low rotation?",
+            "Which technical source should guide the interpretation of signal quality after the scheduled shutdown?"
+          ],
+          "suggested_capabilities": [
+            {
+              "name": "get_asset_context"
+            },
+            {
+              "name": "get_asset_data_quality"
+            },
+            {
+              "name": "search_industrial_knowledge"
+            }
+          ],
+          "dependencies": [
+            {
+              "objective_id": "obj_2",
+              "depends_on_objective_id": "obj_1"
+            }
+          ],
+          "missing_information": [],
+          "stopping_conditions": [
+            "Signal quality criteria for asset_S425 at low rotation are fully identified.",
+            "Relevant technical source for post-shutdown signal interpretation is found."
+          ],
+          "reason_codes": [
+            "ASSET_SIGNAL_QUALITY_ANALYSIS",
+            "INDUSTRIAL_KNOWLEDGE_RETRIEVAL"
+          ]
+        }
+      },
+      "investigator_decisions": [
+        {
+          "output": {
+            "decision_id": "dec_tool_call_asset_S425_quality",
+            "type": "tool_call",
+            "reason_codes": [
+              "ASSET_SIGNAL_QUALITY_ANALYSIS",
+              "INDUSTRIAL_KNOWLEDGE_RETRIEVAL"
+            ],
+            "tool_request": {
+              "tool_name": "get_asset_data_quality",
+              "arguments": {
+                "asset_id": "asset_S425"
+              }
+            }
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "USEFUL_READ_TOOL_ALLOWED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 17050.668,
+              "usage": {
+                "input_tokens": 1072,
+                "output_tokens": 141,
+                "total_tokens": 1213
+              }
+            }
+          ]
+        },
+        {
+          "output": {
+            "decision_id": "dec_search_industrial_knowledge_01",
+            "type": "tool_call",
+            "reason_codes": [
+              "INDUSTRIAL_KNOWLEDGE_RETRIEVAL",
+              "SIGNAL_QUALITY_INTERPRETATION"
+            ],
+            "tool_request": {
+              "tool_name": "search_industrial_knowledge",
+              "arguments": {
+                "query": "compressor de serviço asset_S425 baixa rotação qualidade do sinal"
+              }
+            },
+            "supporting_evidence_ids": [
+              "trace_syn_u_dev_0002:evidence:000001"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "USEFUL_READ_TOOL_ALLOWED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 2003.716,
+              "usage": {
+                "input_tokens": 1235,
+                "output_tokens": 169,
+                "total_tokens": 1404
+              }
+            }
+          ]
+        },
+        {
+          "output": {
+            "decision_id": "dec_escalate_industrial_knowledge_s425",
+            "type": "escalate",
+            "reason_codes": [
+              "INDUSTRIAL_KNOWLEDGE_SEARCH_EXHAUSTED",
+              "CONFLICTING_OR_INSUFFICIENT_EVIDENCE"
+            ],
+            "supporting_evidence_ids": [
+              "trace_syn_u_dev_0002:evidence:000002"
+            ]
+          },
+          "first_pass_valid": true,
+          "repair_attempted": false,
+          "final_decision_source": "first_pass_llm",
+          "completion_policy": {
+            "accepted": true,
+            "reason_code": "SAFE_ESCALATION_ACCEPTED"
+          },
+          "attempt_validations": [
+            {
+              "attempt_number": 1,
+              "valid": true,
+              "latency_ms": 1075.099,
+              "usage": {
+                "input_tokens": 1307,
+                "output_tokens": 131,
+                "total_tokens": 1438
+              }
+            }
+          ]
+        }
+      ],
+      "conclusion": null,
+      "claim_lineage": null,
+      "reporter": null,
+      "trace": [
+        {
+          "sequence": 1,
+          "event_type": "understanding_completed",
+          "details": {
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "request_class": "contextualize",
+            "entity_buckets": [
+              "assets"
+            ]
+          }
+        },
+        {
+          "sequence": 2,
+          "event_type": "planner_completed",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "suggested_capabilities": [
+              "get_asset_context",
+              "get_asset_data_quality",
+              "search_industrial_knowledge"
+            ]
+          }
+        },
+        {
+          "sequence": 3,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 1
+          }
+        },
+        {
+          "sequence": 4,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 5,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 6,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "get_asset_data_quality",
+            "argument_keys": [
+              "asset_id"
+            ]
+          }
+        },
+        {
+          "sequence": 7,
+          "event_type": "tool_started",
+          "tool_name": "get_asset_data_quality",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 8,
+          "event_type": "tool_completed",
+          "tool_name": "get_asset_data_quality",
+          "operation_kind": "READ",
+          "duration_ms": 52.281,
+          "evidence_status": "complete"
+        },
+        {
+          "sequence": 9,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0002:call:000001",
+            "tool_name": "get_asset_data_quality",
+            "evidence_status": "complete"
+          }
+        },
+        {
+          "sequence": 10,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 2
+          }
+        },
+        {
+          "sequence": 11,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 12,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 13,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "search_industrial_knowledge",
+            "argument_keys": [
+              "query"
+            ]
+          }
+        },
+        {
+          "sequence": 14,
+          "event_type": "tool_started",
+          "tool_name": "search_industrial_knowledge",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 15,
+          "event_type": "tool_completed",
+          "tool_name": "search_industrial_knowledge",
+          "operation_kind": "READ",
+          "duration_ms": 28.19,
+          "evidence_status": "complete"
+        },
+        {
+          "sequence": 16,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0002:call:000002",
+            "tool_name": "search_industrial_knowledge",
+            "evidence_status": "complete"
+          }
+        },
+        {
+          "sequence": 17,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 3
+          }
+        },
+        {
+          "sequence": 18,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 19,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "escalate",
+            "proposed_type": "escalate",
+            "policy_reason": "SAFE_ESCALATION_ACCEPTED"
+          }
+        },
+        {
+          "sequence": 20,
+          "event_type": "terminal_state_reached",
+          "details": {
+            "terminal_status": "SAFE_ESCALATION",
+            "failure_category": null,
+            "phase": "human_required"
+          }
+        }
+      ],
+      "evidence_ledger": [
+        {
+          "evidence_id": "trace_syn_u_dev_0002:evidence:000001",
+          "source_call_id": "trace_syn_u_dev_0002:call:000001",
+          "source_trace_sequence": 8,
+          "tool_name": "get_asset_data_quality",
+          "client_operation": "get_data_quality",
+          "arguments": {
+            "asset_id": "asset_S425"
+          },
+          "evidence_status": "complete",
+          "method": "GET",
+          "path": "/assets/asset_S425/data-quality",
+          "notes": null,
+          "data": {
+            "asset_id": "asset_S425",
+            "point_id": "pt_S425_de",
+            "completeness": 0.95,
+            "freshness_minutes": 6,
+            "snr_db": 17.8,
+            "staleness_flag": false
+          }
+        },
+        {
+          "evidence_id": "trace_syn_u_dev_0002:evidence:000002",
+          "source_call_id": "trace_syn_u_dev_0002:call:000002",
+          "source_trace_sequence": 15,
+          "tool_name": "search_industrial_knowledge",
+          "client_operation": "search_knowledge",
+          "arguments": {
+            "query": "compressor de serviço asset_S425 baixa rotação qualidade do sinal"
+          },
+          "evidence_status": "complete",
+          "method": "GET",
+          "path": "/knowledge/search",
+          "notes": null,
+          "data": {
+            "results": []
+          }
+        }
+      ],
+      "terminal_status": "SAFE_ESCALATION",
+      "failure_category": null,
+      "coverage": {
+        "alignment": "MISALIGNED",
+        "grounded_answer_reachable": true,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "DESCRIPTOR_CONTRADICTS_API_RECORD",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API"
+        ]
+      },
+      "errors": [],
+      "duration_ms": 24277.553
+    },
+    "syn_u_dev_0008": {
+      "illustrates": [
+        "real_error"
+      ],
+      "sample_id": "syn_u_dev_0008",
+      "training_tags": [
+        "contextualize",
+        "easy",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "request": {
+        "message": "Pode confirmar com os dados o que significa tendência radial para bomba de circulação asset_S425 depois de ajuste operacional e qual fonte técnica deve orientar a interpretação nesta semana?",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_01",
+          "asset_refs": [
+            "asset_S425"
+          ],
+          "role": "maintenance_analyst",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "understanding": {
+        "provider": "groq",
+        "model": "openai/gpt-oss-120b",
+        "prompt_version": "understanding_prompt_v2",
+        "schema_valid": true,
+        "finish_reason": "stop",
+        "latency_ms": 2620.876,
+        "usage": {
+          "input_tokens": 2492,
+          "output_tokens": 1109,
+          "total_tokens": 3601
+        },
+        "output": {
+          "request_class": "mixed",
+          "intents": [
+            {
+              "intent_id": "i1",
+              "kind": "informational",
+              "summary": "Entender o significado de tendência radial para a bomba de circulação",
+              "target_entities": "…[2 itens omitidos]",
+              "requested_outcome": "Explicação do conceito de tendência radial aplicada à bomba asset_S425"
+            },
+            {
+              "intent_id": "i2",
+              "kind": "investigative",
+              "summary": "Confirmar com os dados a tendência radial após ajuste operacional",
+              "target_entities": "…[1 itens omitidos]",
+              "requested_outcome": "Confirmação baseada nos dados da tendência radial para asset_S425 após o ajuste"
+            }
+          ],
+          "questions": [
+            {
+              "question_id": "q1",
+              "text": "O que significa 'tendência radial' para uma bomba de circulação?",
+              "kind": "clarification",
+              "depends_on": "…[0 itens omitidos]"
+            },
+            {
+              "question_id": "q2",
+              "text": "Os dados mostram qual tendência radial para o asset_S425 após o ajuste operacional?",
+              "kind": "fact",
+              "depends_on": "…[1 itens omitidos]"
+            },
+            {
+              "question_id": "q3",
+              "text": "Qual fonte técnica deve orientar a interpretação da tendência radial desta semana?",
+              "kind": "procedure",
+              "depends_on": "…[0 itens omitidos]"
+            }
+          ],
+          "entities": {
+            "assets": [
+              "asset_S425"
+            ],
+            "analyses": [],
+            "models": [],
+            "technical_terms": [
+              "tendência radial"
+            ],
+            "temporal_references": [
+              "esta semana"
+            ]
+          },
+          "investigation_targets": [
+            "asset context",
+            "analysis evidence",
+            "industrial knowledge"
+          ],
+          "missing_information": [
+            {
+              "field": "time_window",
+              "reason_code": "MISSING_TIME_WINDOW",
+              "blocking": false,
+              "suggested_question": "Qual período de tempo específico dentro desta semana você deseja analisar?"
+            }
+          ],
+          "requested_actions": [],
+          "constraints": {
+            "tenant_scope_known": true,
+            "permissions_known": true,
+            "action_execution_allowed": false
+          },
+          "confidence": 0.93
+        }
+      },
+      "planner": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "prompt_version": "e2e_planner_v1",
+        "schema_valid": true,
+        "finish_reason": "STOP",
+        "latency_ms": 1593.692,
+        "usage": {
+          "input_tokens": 630,
+          "output_tokens": 359,
+          "total_tokens": 989
+        },
+        "output": {
+          "plan_id": "investigation_radial_trend_asset_S425",
+          "objectives": [
+            "Explicar o conceito e o significado de tendência radial para bombas de circulação industriais.",
+            "Investigar os dados operacionais recentes do asset_S425 para confirmar o comportamento da tendência radial após o ajuste operacional."
+          ],
+          "investigation_questions": [
+            "O que significa a tendência radial na análise de vibração de uma bomba de circulação?",
+            "Quais dados e métricas do asset_S425 indicam a tendência radial após o ajuste operacional?"
+          ],
+          "suggested_capabilities": [
+            {
+              "name": "get_asset_context"
+            },
+            {
+              "name": "get_asset_rms"
+            },
+            {
+              "name": "search_industrial_knowledge"
+            }
+          ],
+          "dependencies": [
+            {
+              "objective_id": "obj_2",
+              "depends_on_objective_id": "obj_1"
+            }
+          ],
+          "missing_information": [
+            "Qual período de tempo específico dentro desta semana você deseja analisar?"
+          ],
+          "stopping_conditions": [
+            "O conceito técnico de tendência radial foi claramente explicado com base na literatura industrial.",
+            "Os dados de vibração ou RMS do asset_S425 foram recuperados e analisados para o período em questão."
+          ],
+          "reason_codes": [
+            "MISSING_TIME_WINDOW"
+          ]
+        }
+      },
+      "investigator_decisions": [],
+      "conclusion": null,
+      "claim_lineage": null,
+      "reporter": null,
+      "trace": [
+        {
+          "sequence": 1,
+          "event_type": "understanding_completed",
+          "details": {
+            "provider": "groq",
+            "model": "openai/gpt-oss-120b",
+            "request_class": "mixed",
+            "entity_buckets": [
+              "assets"
+            ]
+          }
+        },
+        {
+          "sequence": 2,
+          "event_type": "planner_completed",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "suggested_capabilities": [
+              "get_asset_context",
+              "get_asset_rms",
+              "search_industrial_knowledge"
+            ]
+          }
+        },
+        {
+          "sequence": 3,
+          "event_type": "llm_decision_produced",
+          "details": {
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "step": 1
+          }
+        },
+        {
+          "sequence": 4,
+          "event_type": "decision_validated",
+          "details": {
+            "valid": true,
+            "category": null,
+            "repair_attempted": false
+          }
+        },
+        {
+          "sequence": 5,
+          "event_type": "decision_accepted",
+          "details": {
+            "decision_type": "tool_call",
+            "proposed_type": "tool_call",
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED"
+          }
+        },
+        {
+          "sequence": 6,
+          "event_type": "tool_requested",
+          "details": {
+            "tool_name": "get_asset_context",
+            "argument_keys": [
+              "asset_id"
+            ]
+          }
+        },
+        {
+          "sequence": 7,
+          "event_type": "tool_started",
+          "tool_name": "get_asset_context",
+          "operation_kind": "READ"
+        },
+        {
+          "sequence": 8,
+          "event_type": "tool_completed",
+          "tool_name": "get_asset_context",
+          "operation_kind": "READ",
+          "duration_ms": 37.553,
+          "evidence_status": "complete"
+        },
+        {
+          "sequence": 9,
+          "event_type": "evidence_created",
+          "details": {
+            "source_call_id": "trace_syn_u_dev_0008:call:000001",
+            "tool_name": "get_asset_context",
+            "evidence_status": "complete"
+          }
+        },
+        {
+          "sequence": 10,
+          "event_type": "terminal_state_reached",
+          "details": {
+            "terminal_status": "FAILED",
+            "failure_category": "UNCLASSIFIED_ERROR",
+            "phase": "investigating"
+          }
+        }
+      ],
+      "evidence_ledger": [
+        {
+          "evidence_id": "trace_syn_u_dev_0008:evidence:000001",
+          "source_call_id": "trace_syn_u_dev_0008:call:000001",
+          "source_trace_sequence": 8,
+          "tool_name": "get_asset_context",
+          "client_operation": "get_asset",
+          "arguments": {
+            "asset_id": "asset_S425"
+          },
+          "evidence_status": "complete",
+          "method": "GET",
+          "path": "/assets/asset_S425",
+          "notes": null,
+          "data": {
+            "id": "asset_S425",
+            "name": "Spindle secundário",
+            "company_id": "comp_acme",
+            "criticality": "medium",
+            "plant": "Planta 1",
+            "line": "Usinagem",
+            "parent_asset_id": null,
+            "machine_type": "spindle",
+            "rotation_rpm": 9000,
+            "bearing_pn": "7006",
+            "bpfo_hz": 541.2,
+            "bpfi_hz": 823.7,
+            "bsf_hz": 234.6,
+            "ftf_hz": 36.1,
+            "line_frequency_hz": null,
+            "sensor_status": "online",
+            "points": [
+              {
+                "id": "pt_S425_de",
+                "asset_id": "asset_S425",
+                "location": "DE",
+                "sensor_status": "online"
+              }
+            ]
+          }
+        }
+      ],
+      "terminal_status": "FAILED",
+      "failure_category": "UNCLASSIFIED_ERROR",
+      "coverage": {
+        "alignment": "MISALIGNED",
+        "grounded_answer_reachable": true,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "DESCRIPTOR_CONTRADICTS_API_RECORD",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API"
+        ]
+      },
+      "errors": [
+        {
+          "code": "PROVIDER_ERROR",
+          "subcategory": "http_status",
+          "primary_layer": "PROVIDER",
+          "detail_sanitized": "investigator: Provider limitou ou falhou temporariamente."
+        }
+      ],
+      "duration_ms": 9268.372
+    }
+  }
+}

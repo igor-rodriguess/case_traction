@@ -11,6 +11,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from app.investigation import InvestigationDecision, InvestigationDecisionType, InvestigationState
+from app.investigation.temporal_policy import is_temporal_argument
 from app.llm.contracts import LLMRequest, LLMResponse, LLMResponseStatus
 from app.llm.provider import LLMProvider
 from app.tools import get_investigator_tools
@@ -36,6 +37,7 @@ class InvestigatorValidationCategory(str, Enum):
     NON_TOOL_DECISION_WITH_TOOL_REQUEST = "NON_TOOL_DECISION_WITH_TOOL_REQUEST"
     INVALID_TOOL_NAME = "INVALID_TOOL_NAME"
     INVALID_TOOL_ARGUMENTS = "INVALID_TOOL_ARGUMENTS"
+    UNSUPPORTED_TEMPORAL_ARGUMENT = "UNSUPPORTED_TEMPORAL_ARGUMENT"
     ASK_USER_WITHOUT_REQUIRED_INFORMATION = "ASK_USER_WITHOUT_REQUIRED_INFORMATION"
     ANSWER_WITHOUT_SUPPORTING_EVIDENCE = "ANSWER_WITHOUT_SUPPORTING_EVIDENCE"
     INVALID_EVIDENCE_REFERENCE = "INVALID_EVIDENCE_REFERENCE"
@@ -197,7 +199,27 @@ def validate_investigation_decision(response: LLMResponse) -> tuple[Investigator
             tool.input_schema.model_validate(request.arguments)
         except ValidationError as exc:
             field = ".".join(str(item) for item in exc.errors(include_url=False)[0].get("loc", ())) or "tool_request.arguments"
-            result = _result(response, valid=False, stage=InvestigatorValidationStage.TOOL_VALIDATION, category=InvestigatorValidationCategory.INVALID_TOOL_ARGUMENTS, field=field, message="Argumentos da tool violam seu schema aprovado.", recoverable=True, retryable=True)
+            # Recorte temporal inexistente é gap de capability, não erro genérico
+            # de argumento: separar os dois é o que permite culpar a camada certa.
+            temporal = is_temporal_argument(field)
+            result = _result(
+                response,
+                valid=False,
+                stage=InvestigatorValidationStage.TOOL_VALIDATION,
+                category=(
+                    InvestigatorValidationCategory.UNSUPPORTED_TEMPORAL_ARGUMENT
+                    if temporal
+                    else InvestigatorValidationCategory.INVALID_TOOL_ARGUMENTS
+                ),
+                field=field,
+                message=(
+                    "Recorte temporal não existe no schema desta tool nem na API."
+                    if temporal
+                    else "Argumentos da tool violam seu schema aprovado."
+                ),
+                recoverable=True,
+                retryable=True,
+            )
             return result, None, output
 
     result = _result(response, valid=True, stage=InvestigatorValidationStage.DOMAIN_INVARIANTS, category=None, message="InvestigationDecision válida.", normalization=normalization)

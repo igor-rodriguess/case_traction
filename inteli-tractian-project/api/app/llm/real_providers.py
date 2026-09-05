@@ -58,7 +58,7 @@ def default_provider_configs() -> dict[ProviderName, ProviderConfig]:
     cerebras_model = os.getenv("CEREBRAS_MODEL") or os.getenv("CEREBRAS_REPORTER_MODEL")
     return {
         ProviderName.GROQ: ProviderConfig(provider=ProviderName.GROQ, base_url="https://api.groq.com/openai/v1", credential_env="GROQ_API_KEY", model=groq_model, max_output_tokens=2048, enabled=bool(groq_model), capabilities=ProviderCapabilities(structured_output=None, tool_calling=True, usage_reporting=True, streaming=True, model_listing=True)),
-        ProviderName.GEMINI: ProviderConfig(provider=ProviderName.GEMINI, base_url="https://generativelanguage.googleapis.com/v1beta", credential_env="GEMINI_API_KEY", model=gemini_model, timeout_seconds=45, enabled=bool(gemini_model), capabilities=ProviderCapabilities(structured_output=True, tool_calling=True, usage_reporting=True, streaming=True, model_listing=True)),
+        ProviderName.GEMINI: ProviderConfig(provider=ProviderName.GEMINI, base_url="https://generativelanguage.googleapis.com/v1beta", credential_env="GEMINI_API_KEY", model=gemini_model, timeout_seconds=45, max_output_tokens=8192, retry=RetryPolicy(max_attempts=2), enabled=bool(gemini_model), capabilities=ProviderCapabilities(structured_output=True, tool_calling=True, usage_reporting=True, streaming=True, model_listing=True)),
         ProviderName.CEREBRAS: ProviderConfig(provider=ProviderName.CEREBRAS, base_url="https://api.cerebras.ai/v1", credential_env="CEREBRAS_API_KEY", model=cerebras_model, enabled=bool(cerebras_model), capabilities=ProviderCapabilities(structured_output=None, tool_calling=True, usage_reporting=True, streaming=True, model_listing=True)),
     }
 
@@ -116,6 +116,29 @@ class BaseHTTPProvider:
                 return self._failure(request, LLMErrorCode.RESPONSE_SCHEMA_ERROR, "Provider retornou resposta inválida ou incompleta.", False, self._duration(started), attempt, response.status_code)
         raise AssertionError("Loop de retry deve retornar antes.")
 
+    def _truncation(self, request: LLMRequest, finish_reason: object, duration: float, attempts: int) -> LLMResponse | None:
+        """Saída cortada pelo teto de tokens não é JSON inválido, é orçamento curto.
+
+        Sem esta checagem o corte chega às camadas de cima disfarçado de erro de
+        schema, e o diagnóstico aponta para o prompt em vez do limite. Repetir a
+        mesma requisição com o mesmo teto daria o mesmo corte: não é retryable.
+        """
+
+        structured = bool(request.expected_schema) and request.structured_output_mode in {
+            StructuredOutputMode.JSON_SCHEMA,
+            StructuredOutputMode.JSON_OBJECT,
+        }
+        if not structured or str(finish_reason or "").lower() not in _TRUNCATION_MARKERS:
+            return None
+        return self._failure(
+            request,
+            LLMErrorCode.OUTPUT_TRUNCATED,
+            "Saída truncada pelo limite de tokens antes de completar o JSON.",
+            False,
+            duration,
+            attempts,
+        )
+
     def _failure(self, request: LLMRequest, code: LLMErrorCode, message: str, retryable: bool, duration: float, attempts: int, http_status: int | None = None) -> LLMResponse:
         return LLMResponse(request_id=request.request_id, provider=self.config.provider.value, model=self.config.model or "not_configured", status=LLMResponseStatus.TIMEOUT if code is LLMErrorCode.TIMEOUT else LLMResponseStatus.PROVIDER_FAILURE, duration_ms=duration, error=LLMError(code=code, message=message, retryable=retryable, http_status=http_status), metadata=LLMMetadata(prompt_version=request.prompt_version, attempt_count=attempts))
 
@@ -150,6 +173,9 @@ class BaseHTTPProvider:
 
 _SECRET_KEYS = frozenset({"api_key", "apikey", "authorization", "credential", "password", "secret", "x-goog-api-key"})
 
+_TRUNCATION_MARKERS = frozenset({"length", "max_tokens"})
+"""`finish_reason` de corte por orçamento: `length` na API OpenAI, `MAX_TOKENS` na Gemini."""
+
 
 def _sanitize_provider_payload(value: Any, *, key: str | None = None) -> Any:
     """Cópia determinística do payload; nunca inclui request headers ou segredos conhecidos."""
@@ -180,6 +206,9 @@ class _OpenAICompatibleProvider(BaseHTTPProvider):
 
     def _normalize(self, request: LLMRequest, payload: dict[str, Any], duration: float, attempts: int) -> LLMResponse:
         choice = payload["choices"][0]
+        truncated = self._truncation(request, choice.get("finish_reason"), duration, attempts)
+        if truncated is not None:
+            return truncated
         content = choice["message"]["content"]
         usage_data = payload.get("usage")
         keys = {"prompt_tokens", "completion_tokens", "total_tokens"}
@@ -204,6 +233,9 @@ class GeminiProvider(BaseHTTPProvider):
 
     def _normalize(self, request: LLMRequest, payload: dict[str, Any], duration: float, attempts: int) -> LLMResponse:
         candidate = payload["candidates"][0]
+        truncated = self._truncation(request, candidate.get("finishReason"), duration, attempts)
+        if truncated is not None:
+            return truncated
         content = candidate["content"]["parts"][0]["text"]
         usage_data = payload.get("usageMetadata")
         keys = {"promptTokenCount", "candidatesTokenCount", "totalTokenCount"}
@@ -222,7 +254,7 @@ def diagnostic_result(response: LLMResponse, credential_status: CredentialStatus
     error = response.error
     assert error is not None
     layer = RootCauseLayer.UNKNOWN
-    if error.code in {LLMErrorCode.NOT_CONFIGURED, LLMErrorCode.AUTHENTICATION, LLMErrorCode.MODEL_NOT_FOUND, LLMErrorCode.QUOTA_EXCEEDED}:
+    if error.code in {LLMErrorCode.NOT_CONFIGURED, LLMErrorCode.AUTHENTICATION, LLMErrorCode.MODEL_NOT_FOUND, LLMErrorCode.QUOTA_EXCEEDED, LLMErrorCode.OUTPUT_TRUNCATED}:
         layer = RootCauseLayer.CONFIGURATION
     elif error.code in {LLMErrorCode.NETWORK_ERROR, LLMErrorCode.TIMEOUT}:
         layer = RootCauseLayer.NETWORK
