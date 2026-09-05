@@ -1,0 +1,515 @@
+{
+  "prompt_version": "e2e_investigator_v4",
+  "provider": "gemini",
+  "model": "gemini-3.5-flash-lite",
+  "initial_calls": 5,
+  "repair_calls": 0,
+  "first_pass_valid_rate": 1.0,
+  "repair_rate": 0.0,
+  "failed_after_repair_rate": 0.0,
+  "forbidden_action_rate": 0.0,
+  "invalid_tool_rate": 0.0,
+  "adapter_errors": 0,
+  "results": [
+    {
+      "scenario": "TOOL_CALL",
+      "expected": "tool_call",
+      "actual": "tool_call",
+      "passed": true,
+      "first_pass_valid": true,
+      "repair_attempted": false,
+      "repair_successful": false,
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "provider_raw_output_sanitized": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"decision_id\": \"dec_tool_call_001\",\n  \"type\": \"tool_call\",\n  \"reason_codes\": [\n    \"RMS_DEVIATION\"\n  ],\n  \"tool_request\": {\n    \"tool_name\": \"get_asset_rms\",\n    \"arguments\": {\n      \"asset_id\": \"asset_B211\"\n    }\n  },\n  \"required_information\": [],\n  \"supporting_evidence_ids\": []\n}",
+                      "thoughtSignature": "El4KXAERTTIP9eTJMVYaiq+ONfGgqNN5mHrzBgrhaTi8MJiKe7V71wUMqgHj68fqzw2fRiWB2gGSX63lWwMGQdCCJwtWOa9FqqfOyL/qlRI4Yo60za9hiAkAqPMRoPri"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 632,
+              "candidatesTokenCount": 118,
+              "totalTokenCount": 750,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 632
+                }
+              ],
+              "serviceTier": "standard"
+            },
+            "modelVersion": "gemini-3.5-flash-lite",
+            "responseId": "MXibar3nEonwz7IP-6bVoQQ"
+          },
+          "canonical_llm_response": {
+            "request_id": "contract_v4_b442766f775a49eeb96abe21fc3a8c3e",
+            "response_id": "MXibar3nEonwz7IP-6bVoQQ",
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "status": "success",
+            "output": "{\n  \"decision_id\": \"dec_tool_call_001\",\n  \"type\": \"tool_call\",\n  \"reason_codes\": [\n    \"RMS_DEVIATION\"\n  ],\n  \"tool_request\": {\n    \"tool_name\": \"get_asset_rms\",\n    \"arguments\": {\n      \"asset_id\": \"asset_B211\"\n    }\n  },\n  \"required_information\": [],\n  \"supporting_evidence_ids\": []\n}",
+            "usage": {
+              "input_tokens": 632,
+              "output_tokens": 118,
+              "total_tokens": 750
+            },
+            "duration_ms": 1222.314,
+            "error": null,
+            "metadata": {
+              "prompt_version": "e2e_investigator_v4",
+              "finish_reason": "STOP",
+              "raw_response_id": null,
+              "attempt_count": 1
+            },
+            "contract_version": "1.0"
+          },
+          "parsed_json": {
+            "decision_id": "dec_tool_call_001",
+            "type": "tool_call",
+            "reason_codes": [
+              "RMS_DEVIATION"
+            ],
+            "tool_request": {
+              "tool_name": "get_asset_rms",
+              "arguments": {
+                "asset_id": "asset_B211"
+              }
+            },
+            "required_information": [],
+            "supporting_evidence_ids": []
+          },
+          "validation": {
+            "valid": true,
+            "stage": "domain_invariants",
+            "category": null,
+            "field": null,
+            "message_sanitized": "InvestigationDecision válida.",
+            "raw_output_reference": "sha256:6b505c16d99ce7ef58496c7a182e5b718c1a800ab77105ed572ab8b8883d783c",
+            "recoverable": false,
+            "retryable": false,
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "normalization_applied": null
+          },
+          "latency_ms": 1222.314,
+          "usage": {
+            "input_tokens": 632,
+            "output_tokens": 118,
+            "total_tokens": 750
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "ASK_USER",
+      "expected": "ask_user",
+      "actual": "ask_user",
+      "passed": true,
+      "first_pass_valid": true,
+      "repair_attempted": false,
+      "repair_successful": false,
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "provider_raw_output_sanitized": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"decision_id\": \"dec_ask_user_001\",\n  \"type\": \"ask_user\",\n  \"reason_codes\": [\n    \"RMS_DEVIATION\"\n  ],\n  \"tool_request\": null,\n  \"required_information\": [\n    \"O aumento representa um desvio real?\"\n  ],\n  \"supporting_evidence_ids\": []\n}",
+                      "thoughtSignature": "El4KXAERTTIPosm0zXEfFdZZ1+Tc6ZQt6hxRs/dAdKOOHfkRcw4IV/XuWb0BhKsA8ewSvb1bslFx/AFMy0KbPwgIy6Ha8E5Cbb+t0S3+LbiGunN3+YKY7LY6G5BP59rQ"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 632,
+              "candidatesTokenCount": 92,
+              "totalTokenCount": 724,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 632
+                }
+              ],
+              "serviceTier": "standard"
+            },
+            "modelVersion": "gemini-3.5-flash-lite",
+            "responseId": "MnibapnZFcGtz7IP57jU2Ac"
+          },
+          "canonical_llm_response": {
+            "request_id": "contract_v4_5f233bd397d34ce399f513628321799f",
+            "response_id": "MnibapnZFcGtz7IP57jU2Ac",
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "status": "success",
+            "output": "{\n  \"decision_id\": \"dec_ask_user_001\",\n  \"type\": \"ask_user\",\n  \"reason_codes\": [\n    \"RMS_DEVIATION\"\n  ],\n  \"tool_request\": null,\n  \"required_information\": [\n    \"O aumento representa um desvio real?\"\n  ],\n  \"supporting_evidence_ids\": []\n}",
+            "usage": {
+              "input_tokens": 632,
+              "output_tokens": 92,
+              "total_tokens": 724
+            },
+            "duration_ms": 1107.594,
+            "error": null,
+            "metadata": {
+              "prompt_version": "e2e_investigator_v4",
+              "finish_reason": "STOP",
+              "raw_response_id": null,
+              "attempt_count": 1
+            },
+            "contract_version": "1.0"
+          },
+          "parsed_json": {
+            "decision_id": "dec_ask_user_001",
+            "type": "ask_user",
+            "reason_codes": [
+              "RMS_DEVIATION"
+            ],
+            "tool_request": null,
+            "required_information": [
+              "O aumento representa um desvio real?"
+            ],
+            "supporting_evidence_ids": []
+          },
+          "validation": {
+            "valid": true,
+            "stage": "domain_invariants",
+            "category": null,
+            "field": null,
+            "message_sanitized": "InvestigationDecision válida.",
+            "raw_output_reference": "sha256:a9cb908c9c6197ba57612605766638a7f309eb6287005fc58d38d3bae1c81e20",
+            "recoverable": false,
+            "retryable": false,
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "normalization_applied": null
+          },
+          "latency_ms": 1107.594,
+          "usage": {
+            "input_tokens": 632,
+            "output_tokens": 92,
+            "total_tokens": 724
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "ANSWER",
+      "expected": "answer",
+      "actual": "answer",
+      "passed": true,
+      "first_pass_valid": true,
+      "repair_attempted": false,
+      "repair_successful": false,
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "provider_raw_output_sanitized": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"decision_id\": \"dec_answer_001\",\n  \"type\": \"answer\",\n  \"reason_codes\": [\n    \"RMS_DEVIATION\"\n  ],\n  \"tool_request\": null,\n  \"required_information\": [],\n  \"supporting_evidence_ids\": [\n    \"evidence_complete_001\"\n  ]\n}",
+                      "thoughtSignature": "El4KXAERTTIPx0aeN4fuFgPya6SzOfOt9jgHYT0TSI47z78qfXxbSyxV/OuH4EaP13kdx2xlBi2zN6dfGoE7ro9vVpf5LXGKzlqBMiS73AWCZ8ANFSFkrcdJqm3LrBcK"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 674,
+              "candidatesTokenCount": 88,
+              "totalTokenCount": 762,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 674
+                }
+              ],
+              "serviceTier": "standard"
+            },
+            "modelVersion": "gemini-3.5-flash-lite",
+            "responseId": "M3ibap64HMSHz7IP_sWr-Qc"
+          },
+          "canonical_llm_response": {
+            "request_id": "contract_v4_8393feb3a5c242cdaf46f5d66405568e",
+            "response_id": "M3ibap64HMSHz7IP_sWr-Qc",
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "status": "success",
+            "output": "{\n  \"decision_id\": \"dec_answer_001\",\n  \"type\": \"answer\",\n  \"reason_codes\": [\n    \"RMS_DEVIATION\"\n  ],\n  \"tool_request\": null,\n  \"required_information\": [],\n  \"supporting_evidence_ids\": [\n    \"evidence_complete_001\"\n  ]\n}",
+            "usage": {
+              "input_tokens": 674,
+              "output_tokens": 88,
+              "total_tokens": 762
+            },
+            "duration_ms": 982.788,
+            "error": null,
+            "metadata": {
+              "prompt_version": "e2e_investigator_v4",
+              "finish_reason": "STOP",
+              "raw_response_id": null,
+              "attempt_count": 1
+            },
+            "contract_version": "1.0"
+          },
+          "parsed_json": {
+            "decision_id": "dec_answer_001",
+            "type": "answer",
+            "reason_codes": [
+              "RMS_DEVIATION"
+            ],
+            "tool_request": null,
+            "required_information": [],
+            "supporting_evidence_ids": [
+              "evidence_complete_001"
+            ]
+          },
+          "validation": {
+            "valid": true,
+            "stage": "domain_invariants",
+            "category": null,
+            "field": null,
+            "message_sanitized": "InvestigationDecision válida.",
+            "raw_output_reference": "sha256:fed85cce5f53b7a6c2945d923204f9b3e24578813db6f2d0441ce6d1e0b849f5",
+            "recoverable": false,
+            "retryable": false,
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "normalization_applied": null
+          },
+          "latency_ms": 982.788,
+          "usage": {
+            "input_tokens": 674,
+            "output_tokens": 88,
+            "total_tokens": 762
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "ESCALATE",
+      "expected": "escalate",
+      "actual": "escalate",
+      "passed": true,
+      "first_pass_valid": true,
+      "repair_attempted": false,
+      "repair_successful": false,
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "provider_raw_output_sanitized": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"decision_id\": \"dec_escalate_001\",\n  \"type\": \"escalate\",\n  \"reason_codes\": [\n    \"MAX_TOOL_CALLS_REACHED\",\n    \"RMS_DEVIATION\"\n  ],\n  \"tool_request\": null,\n  \"required_information\": [],\n  \"supporting_evidence_ids\": [\n    \"evidence_unavailable_001\"\n  ]\n}",
+                      "thoughtSignature": "El4KXAERTTIPDUsA1aB00zYSLpfQU2yVynd3KiKhg8Vh26KPXbwIFcF+jE6Pi9een+pI8uHdIOW0IVJWkMfWuCYSxmIUvMfKvhdyLitxZTN5slvm+QulZbFIKY2Rae6f"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 663,
+              "candidatesTokenCount": 104,
+              "totalTokenCount": 767,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 663
+                }
+              ],
+              "serviceTier": "standard"
+            },
+            "modelVersion": "gemini-3.5-flash-lite",
+            "responseId": "NHibaquWGtKHz7IP9OHdqAQ"
+          },
+          "canonical_llm_response": {
+            "request_id": "contract_v4_00067ef89cb841abaa4ad6c98c7904f4",
+            "response_id": "NHibaquWGtKHz7IP9OHdqAQ",
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "status": "success",
+            "output": "{\n  \"decision_id\": \"dec_escalate_001\",\n  \"type\": \"escalate\",\n  \"reason_codes\": [\n    \"MAX_TOOL_CALLS_REACHED\",\n    \"RMS_DEVIATION\"\n  ],\n  \"tool_request\": null,\n  \"required_information\": [],\n  \"supporting_evidence_ids\": [\n    \"evidence_unavailable_001\"\n  ]\n}",
+            "usage": {
+              "input_tokens": 663,
+              "output_tokens": 104,
+              "total_tokens": 767
+            },
+            "duration_ms": 1035.903,
+            "error": null,
+            "metadata": {
+              "prompt_version": "e2e_investigator_v4",
+              "finish_reason": "STOP",
+              "raw_response_id": null,
+              "attempt_count": 1
+            },
+            "contract_version": "1.0"
+          },
+          "parsed_json": {
+            "decision_id": "dec_escalate_001",
+            "type": "escalate",
+            "reason_codes": [
+              "MAX_TOOL_CALLS_REACHED",
+              "RMS_DEVIATION"
+            ],
+            "tool_request": null,
+            "required_information": [],
+            "supporting_evidence_ids": [
+              "evidence_unavailable_001"
+            ]
+          },
+          "validation": {
+            "valid": true,
+            "stage": "domain_invariants",
+            "category": null,
+            "field": null,
+            "message_sanitized": "InvestigationDecision válida.",
+            "raw_output_reference": "sha256:b4635f3d952ce69e541a1705d447a41b57be6359da1327eadacde56949f91b87",
+            "recoverable": false,
+            "retryable": false,
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "normalization_applied": null
+          },
+          "latency_ms": 1035.903,
+          "usage": {
+            "input_tokens": 663,
+            "output_tokens": 104,
+            "total_tokens": 767
+          }
+        }
+      ]
+    },
+    {
+      "scenario": "CONTINUE",
+      "expected": "continue",
+      "actual": "continue",
+      "passed": true,
+      "first_pass_valid": true,
+      "repair_attempted": false,
+      "repair_successful": false,
+      "attempts": [
+        {
+          "attempt_number": 1,
+          "provider_raw_output_sanitized": {
+            "candidates": [
+              {
+                "content": {
+                  "parts": [
+                    {
+                      "text": "{\n  \"decision_id\": \"dec_continue_001\",\n  \"type\": \"continue\",\n  \"reason_codes\": [\n    \"RMS_DEVIATION\",\n    \"CONTINUE_INVESTIGATION\"\n  ],\n  \"tool_request\": null,\n  \"required_information\": [],\n  \"supporting_evidence_ids\": [\n    \"evidence_complete_001\"\n  ]\n}",
+                      "thoughtSignature": "El4KXAERTTIPXjCGdoYIWJRSAhJrQewTZBVHXhTr1orImRTrMu7MMagtMDPtSB4N84iLajoFNhuBiNqh7c1S0zLUsmfmKBitvO/QZ8m9qPRneGEb1XAnDbHTfjhKIOMt"
+                    }
+                  ],
+                  "role": "model"
+                },
+                "finishReason": "STOP",
+                "index": 0
+              }
+            ],
+            "usageMetadata": {
+              "promptTokenCount": 675,
+              "candidatesTokenCount": 97,
+              "totalTokenCount": 772,
+              "promptTokensDetails": [
+                {
+                  "modality": "TEXT",
+                  "tokenCount": 675
+                }
+              ],
+              "serviceTier": "standard"
+            },
+            "modelVersion": "gemini-3.5-flash-lite",
+            "responseId": "NXibau-HHYTPz7IPl4HMIA"
+          },
+          "canonical_llm_response": {
+            "request_id": "contract_v4_866c7a9b510e48ebbb05b691bb59dc66",
+            "response_id": "NXibau-HHYTPz7IPl4HMIA",
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "status": "success",
+            "output": "{\n  \"decision_id\": \"dec_continue_001\",\n  \"type\": \"continue\",\n  \"reason_codes\": [\n    \"RMS_DEVIATION\",\n    \"CONTINUE_INVESTIGATION\"\n  ],\n  \"tool_request\": null,\n  \"required_information\": [],\n  \"supporting_evidence_ids\": [\n    \"evidence_complete_001\"\n  ]\n}",
+            "usage": {
+              "input_tokens": 675,
+              "output_tokens": 97,
+              "total_tokens": 772
+            },
+            "duration_ms": 996.768,
+            "error": null,
+            "metadata": {
+              "prompt_version": "e2e_investigator_v4",
+              "finish_reason": "STOP",
+              "raw_response_id": null,
+              "attempt_count": 1
+            },
+            "contract_version": "1.0"
+          },
+          "parsed_json": {
+            "decision_id": "dec_continue_001",
+            "type": "continue",
+            "reason_codes": [
+              "RMS_DEVIATION",
+              "CONTINUE_INVESTIGATION"
+            ],
+            "tool_request": null,
+            "required_information": [],
+            "supporting_evidence_ids": [
+              "evidence_complete_001"
+            ]
+          },
+          "validation": {
+            "valid": true,
+            "stage": "domain_invariants",
+            "category": null,
+            "field": null,
+            "message_sanitized": "InvestigationDecision válida.",
+            "raw_output_reference": "sha256:a69379dad3f91891a2822d9a57a443a7354113ee8baf0cab0f07bd349e901da8",
+            "recoverable": false,
+            "retryable": false,
+            "provider": "gemini",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_version": "e2e_investigator_v4",
+            "normalization_applied": null
+          },
+          "latency_ms": 996.768,
+          "usage": {
+            "input_tokens": 675,
+            "output_tokens": 97,
+            "total_tokens": 772
+          }
+        }
+      ]
+    }
+  ]
+}

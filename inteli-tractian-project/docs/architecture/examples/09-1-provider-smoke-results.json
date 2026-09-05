@@ -1,0 +1,36 @@
+{
+  "result_type": "controlled_connectivity_diagnostic",
+  "external_calls": 2,
+  "results": [
+    {
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "credential_status": "configured",
+      "connectivity_status": "success",
+      "http_status": null,
+      "error_category": null,
+      "root_cause_layer": "unknown",
+      "retryable": false,
+      "latency_ms": 4481.083,
+      "usage": {
+        "input_tokens": 9,
+        "output_tokens": 2,
+        "total_tokens": 11
+      },
+      "message_sanitized": "Conectividade confirmada."
+    },
+    {
+      "provider": "cerebras",
+      "model": "gpt-oss-120b",
+      "credential_status": "configured",
+      "connectivity_status": "failure",
+      "http_status": 402,
+      "error_category": "quota_exceeded",
+      "root_cause_layer": "configuration",
+      "retryable": false,
+      "latency_ms": 210.475,
+      "usage": null,
+      "message_sanitized": "Quota do provider indispon\u00edvel."
+    }
+  ]
+}

@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, field_validator, model_validator
 
 from app.integrations.tractian_client import ClientErrorKind, EvidenceStatus, OperationKind
 
@@ -17,9 +17,18 @@ class AuditModel(BaseModel):
 
 
 class TraceEventType(str, Enum):
+    LLM_DECISION_PRODUCED = "llm_decision_produced"
+    DECISION_VALIDATED = "decision_validated"
+    DECISION_ACCEPTED = "decision_accepted"
+    DECISION_REJECTED = "decision_rejected"
+    TOOL_REQUESTED = "tool_requested"
     TOOL_STARTED = "tool_started"
     TOOL_COMPLETED = "tool_completed"
     TOOL_FAILED = "tool_failed"
+    CONCLUSION_CREATED = "conclusion_created"
+    REPORTER_STARTED = "reporter_started"
+    REPORTER_COMPLETED = "reporter_completed"
+    REPORTER_FAILED = "reporter_failed"
 
 
 class ClientErrorSnapshot(AuditModel):
@@ -52,11 +61,12 @@ class TraceEvent(AuditModel):
     sequence: int = Field(ge=1)
     event_type: TraceEventType
     timestamp: datetime
-    tool_name: str = Field(min_length=1)
-    category: str = Field(min_length=1)
-    operation_kind: OperationKind
-    client_operation: str = Field(min_length=1)
-    arguments: dict[str, JsonValue]
+    tool_name: str | None = Field(default=None, min_length=1)
+    category: str | None = Field(default=None, min_length=1)
+    operation_kind: OperationKind | None = None
+    client_operation: str | None = Field(default=None, min_length=1)
+    arguments: dict[str, JsonValue] = Field(default_factory=dict)
+    details: dict[str, JsonValue] = Field(default_factory=dict)
     duration_ms: float | None = Field(default=None, ge=0)
     result: ClientResultSnapshot | None = None
     failure: FailureSnapshot | None = None
@@ -67,6 +77,13 @@ class TraceEvent(AuditModel):
         if value.tzinfo is None or value.utcoffset() is None:
             raise ValueError("timestamp deve possuir timezone.")
         return value
+
+    @model_validator(mode="after")
+    def tool_events_require_tool_metadata(self) -> "TraceEvent":
+        if self.event_type in {TraceEventType.TOOL_STARTED, TraceEventType.TOOL_COMPLETED, TraceEventType.TOOL_FAILED}:
+            if not all((self.tool_name, self.category, self.operation_kind, self.client_operation)):
+                raise ValueError("Eventos de tool exigem metadados completos da operação.")
+        return self
 
 
 class EvidenceRecord(AuditModel):

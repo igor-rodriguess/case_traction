@@ -1,0 +1,147 @@
+{
+  "result_type": "real_contract_smoke",
+  "external_calls": 1,
+  "results": [
+    {
+      "component": "investigator",
+      "input": {
+        "understanding": {
+          "request_class": "investigate",
+          "intents": [
+            {
+              "intent_id": "intent_1",
+              "kind": "investigative",
+              "summary": "Avaliar aumento de vibração RMS.",
+              "target_entities": [
+                "asset_B211"
+              ],
+              "requested_outcome": "Resposta baseada em evidências."
+            }
+          ],
+          "questions": [
+            {
+              "question_id": "question_1",
+              "text": "O aumento representa um desvio real?",
+              "kind": "diagnosis",
+              "depends_on": []
+            }
+          ],
+          "entities": {
+            "assets": [
+              "asset_B211"
+            ],
+            "analyses": [],
+            "models": [],
+            "technical_terms": [
+              "vibração RMS"
+            ],
+            "temporal_references": [
+              "nesta semana"
+            ]
+          },
+          "investigation_targets": [
+            "asset context",
+            "rms trend",
+            "baseline",
+            "data quality"
+          ],
+          "missing_information": [],
+          "requested_actions": [],
+          "constraints": {
+            "tenant_scope_known": true,
+            "permissions_known": true,
+            "action_execution_allowed": false
+          },
+          "confidence": 0.9
+        },
+        "plan": {
+          "plan_id": "plan_contract_fixture",
+          "objectives": [
+            "Verificar se RMS diverge do baseline."
+          ],
+          "investigation_questions": [
+            "A tendência RMS está acima da referência?"
+          ],
+          "suggested_capabilities": [
+            {
+              "name": "get_asset_rms"
+            }
+          ],
+          "dependencies": [],
+          "missing_information": [],
+          "stopping_conditions": [
+            "Evidência suficiente ou limitação explícita."
+          ],
+          "reason_codes": [
+            "RMS_DEVIATION"
+          ]
+        },
+        "phase": "investigating",
+        "evidence": {
+          "evidence_ids": [
+            "evidence_contract_001"
+          ],
+          "statuses": [
+            "complete"
+          ],
+          "relevant_results": [
+            {
+              "asset_id": "asset_B211",
+              "rms_trend": "elevated",
+              "source": "synthetic_fixture"
+            }
+          ]
+        },
+        "trace": {
+          "trace_id": "trace_contract_fixture",
+          "tool_call_count": 0,
+          "last_tool_name": null,
+          "last_call_id": null
+        },
+        "permitted_capabilities": [
+          {
+            "name": "get_asset_rms"
+          }
+        ],
+        "investigation_step_count": 0,
+        "max_investigation_steps": 3,
+        "tool_call_count": 0,
+        "max_tool_calls": 1,
+        "last_observation": null,
+        "missing_information": []
+      },
+      "output": {
+        "decision_id": "dec_rms_b211_001",
+        "type": "tool_call",
+        "reason_codes": [
+          "RMS_DEVIATION",
+          "NEED_ASSET_RMS_DETAILS"
+        ],
+        "tool_request": {
+          "tool_name": "get_asset_rms",
+          "arguments": {
+            "asset_id": "asset_B211"
+          }
+        },
+        "required_information": [],
+        "supporting_evidence_ids": []
+      },
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "prompt_version": "contract_smoke.v5.investigator",
+      "latency_ms": 1322.794,
+      "usage": {
+        "input_tokens": 615,
+        "output_tokens": 133,
+        "total_tokens": 748
+      },
+      "finish_reason": "STOP",
+      "attempt_count": 1,
+      "schema_valid": true,
+      "contract_valid": true,
+      "error_category": null,
+      "provider_message_sanitized": null,
+      "error": null
+    }
+  ]
+}

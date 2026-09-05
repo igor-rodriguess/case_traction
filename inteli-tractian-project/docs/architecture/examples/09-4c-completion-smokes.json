@@ -1,0 +1,33 @@
+{
+  "external_calls": 2,
+  "results": [
+    {
+      "scenario": "SHOULD_ANSWER",
+      "expected": "answer",
+      "actual": "answer",
+      "passed": true,
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "latency_ms": 1357.173,
+      "usage": {
+        "input_tokens": 606,
+        "output_tokens": 88,
+        "total_tokens": 694
+      }
+    },
+    {
+      "scenario": "SHOULD_ESCALATE",
+      "expected": "escalate",
+      "actual": "escalate",
+      "passed": true,
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "latency_ms": 1358.237,
+      "usage": {
+        "input_tokens": 600,
+        "output_tokens": 81,
+        "total_tokens": 681
+      }
+    }
+  ]
+}

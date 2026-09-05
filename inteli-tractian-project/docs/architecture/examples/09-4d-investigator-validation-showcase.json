@@ -1,0 +1,24 @@
+{
+  "source": "09-4d-contract-smoke.json/TOOL_CALL",
+  "provider_raw_output_sanitized": {
+    "text": "{\"decision_id\":\"dec_tool_call_001\",\"type\":\"tool_call\",\"reason_codes\":[\"RMS_DEVIATION\"],\"tool_request\":{\"tool_name\":\"get_asset_rms\",\"arguments\":{\"asset_id\":\"asset_B211\"}},\"required_information\":[],\"supporting_evidence_ids\":[]}"
+  },
+  "canonical_llm_response_output_preserved": true,
+  "parsed_json": {
+    "decision_id": "dec_tool_call_001",
+    "type": "tool_call",
+    "reason_codes": ["RMS_DEVIATION"],
+    "tool_request": {"tool_name": "get_asset_rms", "arguments": {"asset_id": "asset_B211"}},
+    "required_information": [],
+    "supporting_evidence_ids": []
+  },
+  "validation": {
+    "valid": true,
+    "stage": "domain_invariants",
+    "category": null,
+    "raw_output_reference": "sha256:6b505c16d99ce7ef58496c7a182e5b718c1a800ab77105ed572ab8b8883d783c"
+  },
+  "recovery": {"attempted": false, "result": "FIRST_PASS_VALID"},
+  "final_investigation_decision": "tool_call",
+  "secrets_included": false
+}

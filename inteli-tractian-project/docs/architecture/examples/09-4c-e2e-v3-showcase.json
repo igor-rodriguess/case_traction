@@ -1,0 +1,13 @@
+{
+  "source": "experiments/e2e-dev-v3/showcase.json",
+  "routing_version": "MODEL_ROUTING_V3",
+  "sample_ids": ["syn_u_dev_0001", "syn_u_dev_0040", "syn_u_dev_0023", "syn_u_dev_0049", "syn_u_dev_0036"],
+  "cases": [
+    {"sample_id": "syn_u_dev_0001", "final_status": "DEAD_END", "error": "LLMOutputValidationError", "tools": 0, "evidence": 0},
+    {"sample_id": "syn_u_dev_0040", "final_status": "DEAD_END", "error": "LLMOutputValidationError", "tools": 0, "evidence": 0},
+    {"sample_id": "syn_u_dev_0023", "final_status": "AWAITING_REQUIRED_INFORMATION", "error": null, "tools": 0, "evidence": 0},
+    {"sample_id": "syn_u_dev_0049", "final_status": "AWAITING_REQUIRED_INFORMATION", "error": null, "tools": 0, "evidence": 0},
+    {"sample_id": "syn_u_dev_0036", "final_status": "DEAD_END", "error": "LLMOutputValidationError", "tools": 0, "evidence": 0}
+  ],
+  "note": "Os outputs completos, decisões e métricas reais permanecem no showcase experimental indicado por source; nenhum output ausente foi inventado."
+}

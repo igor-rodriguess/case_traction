@@ -23,6 +23,12 @@ class LLMMessageRole(str, Enum):
     ASSISTANT = "assistant"
 
 
+class StructuredOutputMode(str, Enum):
+    JSON_SCHEMA = "json_schema"
+    JSON_OBJECT = "json_object"
+    TEXT = "text"
+
+
 class LLMMessage(LLMContract):
     role: LLMMessageRole
     content: str = Field(min_length=1, max_length=30_000)
@@ -42,6 +48,7 @@ class LLMRequest(LLMContract):
     prompt_version: Identifier
     generation: LLMGenerationParameters = Field(default_factory=LLMGenerationParameters)
     expected_schema: dict[str, JsonValue]
+    structured_output_mode: StructuredOutputMode = StructuredOutputMode.JSON_SCHEMA
     max_output_tokens: int = Field(ge=1, le=32_768)
     timeout_seconds: float = Field(gt=0.0, le=300.0)
     contract_version: str = Field(default="1.0", pattern=r"^\d+\.\d+$")
@@ -76,12 +83,18 @@ class LLMErrorCode(str, Enum):
     AUTHENTICATION = "authentication"
     RATE_LIMIT = "rate_limit"
     HTTP_STATUS = "http_status"
+    MODEL_NOT_FOUND = "model_not_found"
+    REQUEST_SCHEMA_ERROR = "request_schema_error"
+    RESPONSE_SCHEMA_ERROR = "response_schema_error"
+    NETWORK_ERROR = "network_error"
+    QUOTA_EXCEEDED = "quota_exceeded"
 
 
 class LLMError(LLMContract):
     code: LLMErrorCode
     message: str = Field(min_length=1, max_length=500)
     retryable: bool
+    http_status: int | None = Field(default=None, ge=100, le=599)
 
 
 class LLMResponseStatus(str, Enum):
@@ -114,3 +127,40 @@ class LLMResponse(LLMContract):
         elif self.error is None:
             raise ValueError("Resposta não bem-sucedida exige erro estruturado.")
         return self
+
+
+class CredentialStatus(str, Enum):
+    CONFIGURED = "configured"
+    MISSING = "missing"
+    INVALID = "invalid"
+    UNKNOWN = "unknown"
+
+
+class ConnectivityStatus(str, Enum):
+    SUCCESS = "success"
+    FAILURE = "failure"
+    NOT_CONFIGURED = "not_configured"
+
+
+class RootCauseLayer(str, Enum):
+    CONFIGURATION = "configuration"
+    PROVIDER = "provider"
+    ADAPTER = "adapter"
+    NETWORK = "network"
+    UNKNOWN = "unknown"
+
+
+class ProviderDiagnosticResult(LLMContract):
+    """Registro seguro de um smoke sem payload ou credencial."""
+
+    provider: ProviderName
+    model: ModelName
+    credential_status: CredentialStatus
+    connectivity_status: ConnectivityStatus
+    http_status: int | None = Field(default=None, ge=100, le=599)
+    error_category: LLMErrorCode | None = None
+    root_cause_layer: RootCauseLayer
+    retryable: bool = False
+    latency_ms: float = Field(ge=0.0)
+    usage: LLMUsage | None = None
+    message_sanitized: str = Field(min_length=1, max_length=500)

@@ -1,0 +1,104 @@
+{
+  "result_type": "real_contract_smoke",
+  "external_calls": 1,
+  "results": [
+    {
+      "component": "understanding",
+      "input": {
+        "message": "Verifique se a tendência RMS do ativo asset_B211 precisa de investigação nesta semana.",
+        "available_context": {
+          "tenant_ref": "tenant_contract_fixture",
+          "asset_refs": [
+            "asset_B211"
+          ],
+          "role": "maintenance_analyst",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "output": {
+        "request_class": "investigate",
+        "intents": [
+          {
+            "intent_id": "i1",
+            "kind": "investigative",
+            "summary": "Verificar se a tendência RMS do ativo asset_B211 precisa de investigação nesta semana.",
+            "target_entities": [
+              "asset_B211"
+            ],
+            "requested_outcome": "Determinar se a tendência RMS indica necessidade de investigação."
+          }
+        ],
+        "questions": [
+          {
+            "question_id": "q1",
+            "text": "Qual é a tendência RMS do ativo asset_B211 nesta semana?",
+            "kind": "fact",
+            "depends_on": [
+              "asset_B211",
+              "time_window"
+            ]
+          },
+          {
+            "question_id": "q2",
+            "text": "Essa tendência RMS indica necessidade de investigação?",
+            "kind": "diagnosis",
+            "depends_on": [
+              "q1"
+            ]
+          }
+        ],
+        "entities": {
+          "assets": [
+            "asset_B211"
+          ],
+          "analyses": [],
+          "models": [],
+          "technical_terms": [
+            "RMS"
+          ],
+          "temporal_references": [
+            "esta semana"
+          ]
+        },
+        "investigation_targets": [
+          "asset context",
+          "RMS",
+          "analysis evidence"
+        ],
+        "missing_information": [
+          {
+            "field": "time_window",
+            "reason_code": "MISSING_TIME_WINDOW",
+            "blocking": true,
+            "suggested_question": "Qual o período exato (data de início e fim) da semana que deseja analisar?"
+          }
+        ],
+        "requested_actions": [],
+        "constraints": {
+          "tenant_scope_known": true,
+          "permissions_known": true,
+          "action_execution_allowed": false
+        },
+        "confidence": 0.96
+      },
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "prompt_version": "understanding_prompt_v2",
+      "latency_ms": 2757.381,
+      "usage": {
+        "input_tokens": 2475,
+        "output_tokens": 1119,
+        "total_tokens": 3594
+      },
+      "finish_reason": "stop",
+      "attempt_count": 1,
+      "schema_valid": true,
+      "contract_valid": true,
+      "error_category": null,
+      "provider_message_sanitized": null,
+      "error": null
+    }
+  ]
+}

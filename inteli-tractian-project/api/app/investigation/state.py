@@ -72,6 +72,7 @@ class UnderstandingSource(str, Enum):
 
 class LLMArtifactSource(str, Enum):
     FAKE_LLM = "fake_llm"
+    REAL_LLM = "real_llm"
 
 
 class InvestigationErrorCode(str, Enum):

@@ -25,6 +25,7 @@
         "type": "object",
         "title": "InvestigationDecision"
       },
+      "structured_output_mode": "json_schema",
       "max_output_tokens": 400,
       "timeout_seconds": 10.0,
       "contract_version": "1.0"
@@ -123,7 +124,7 @@
     "rejection": {
       "accepted": false,
       "error_type": "LLMOutputValidationError",
-      "message": "Decisão do provider viola o schema operacional."
+      "message": "domain_invariants:INVALID_TOOL_NAME: Value error, tool_name deve identificar uma READ tool autorizada ao Investigator."
     }
   }
 }

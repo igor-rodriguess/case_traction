@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from threading import Lock
+from datetime import datetime, timezone
 
-from app.observability.models import TraceEvent
+from app.observability.models import TraceEvent, TraceEventType
 
 
 class ExecutionTrace:
@@ -37,3 +38,22 @@ class ExecutionTrace:
 
     def as_dicts(self) -> list[dict[str, object]]:
         return [event.model_dump(mode="json") for event in self.events]
+
+    def append_operational(
+        self,
+        event_type: TraceEventType,
+        event_id: str,
+        *,
+        details: dict[str, object] | None = None,
+        timestamp: datetime | None = None,
+    ) -> TraceEvent:
+        """Registra somente metadados operacionais, nunca raciocínio privado."""
+
+        return self.append(TraceEvent(
+            trace_id=self._trace_id,
+            call_id=event_id,
+            sequence=1,
+            event_type=event_type,
+            timestamp=timestamp or datetime.now(timezone.utc),
+            details=details or {},
+        ))

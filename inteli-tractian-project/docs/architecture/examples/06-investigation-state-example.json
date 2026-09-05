@@ -103,6 +103,7 @@
         "arguments": {
           "asset_id": "asset_B211"
         },
+        "details": {},
         "duration_ms": null,
         "result": null,
         "failure": null
@@ -120,6 +121,7 @@
         "arguments": {
           "asset_id": "asset_B211"
         },
+        "details": {},
         "duration_ms": 25.0,
         "result": {
           "operation": "get_asset",

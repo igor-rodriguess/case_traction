@@ -1,0 +1,47 @@
+{
+  "experiment_v1_preserved": true,
+  "issues": [
+    {
+      "issue_id": "ISSUE-U-001",
+      "component": "understanding",
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "sample_id": "syn_u_dev_0040",
+      "observed_behavior": "Resposta terminou com finish_reason=length e output_tokens=1200.",
+      "error_category": "TRUNCATION_CONFIRMED",
+      "root_cause_hypothesis": "max_output_tokens do pedido V1 era insuficiente para o schema real em casos longos.",
+      "evidence": "runs.jsonl V1: output_tokens exatamente no teto e sem output estruturado validado.",
+      "proposed_fix": "V2 usa max_output_tokens=1800 e prompt_version understanding_prompt_v2.",
+      "risk_of_fix": "Maior consumo por chamada; não altera schema nem semântica.",
+      "decision": "GROQ_CONFIG_FIX"
+    },
+    {
+      "issue_id": "ISSUE-U-002",
+      "component": "understanding",
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "sample_id": "syn_u_dev_0023",
+      "observed_behavior": "Três chamadas V1 classificadas como rate_limit após chamadas sequenciais.",
+      "error_category": "RATE_LIMIT_UNKNOWN",
+      "root_cause_hypothesis": "Limite transitório de provider, sem HTTP/headers persistidos no artefato V1.",
+      "evidence": "errors V1 e LLMResponse sanitizado; RPM/TPM/RPD não são inferidos.",
+      "proposed_fix": "V2 introduz espera explícita de 20 segundos entre casos, sem aumentar retries.",
+      "risk_of_fix": "Aumenta duração do piloto; não garante quota disponível.",
+      "decision": "GROQ_PROVIDER_LIMIT"
+    },
+    {
+      "issue_id": "ISSUE-I-001",
+      "component": "investigator",
+      "provider": "gemini",
+      "model": "gemini-3.5-flash-lite",
+      "sample_id": "syn_u_dev_0001",
+      "observed_behavior": "LLMOutputValidationError após Planner válido; V1 não persistiu resposta inválida antes do parser.",
+      "error_category": "OTHER_CONTRACT_VIOLATION",
+      "root_cause_hypothesis": "Prompt V1 não explicitava os campos condicionais exigidos por InvestigationDecision.",
+      "evidence": "O mesmo contrato passou no smoke Gemini quando a instrução explicitou tool_request, required_information e supporting_evidence_ids.",
+      "proposed_fix": "V2 usa e2e_investigator_v2 com essas invariantes explícitas, sem relaxar o contrato.",
+      "risk_of_fix": "Pode aumentar tokens, mas mantém ACTION proibida e validação local obrigatória.",
+      "decision": "GEMINI_PROMPT_FIX"
+    }
+  ]
+}

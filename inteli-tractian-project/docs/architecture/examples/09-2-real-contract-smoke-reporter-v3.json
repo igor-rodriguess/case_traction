@@ -1,0 +1,149 @@
+{
+  "result_type": "real_contract_smoke",
+  "external_calls": 1,
+  "results": [
+    {
+      "component": "reporter",
+      "input": {
+        "case_id": "case_contract_fixture",
+        "trace_id": "trace_contract_fixture",
+        "understanding": {
+          "request_class": "investigate",
+          "intents": [
+            {
+              "intent_id": "intent_1",
+              "kind": "investigative",
+              "summary": "Avaliar aumento de vibração RMS.",
+              "target_entities": [
+                "asset_B211"
+              ],
+              "requested_outcome": "Resposta baseada em evidências."
+            }
+          ],
+          "questions": [
+            {
+              "question_id": "question_1",
+              "text": "O aumento representa um desvio real?",
+              "kind": "diagnosis",
+              "depends_on": []
+            }
+          ],
+          "entities": {
+            "assets": [
+              "asset_B211"
+            ],
+            "analyses": [],
+            "models": [],
+            "technical_terms": [
+              "vibração RMS"
+            ],
+            "temporal_references": [
+              "nesta semana"
+            ]
+          },
+          "investigation_targets": [
+            "asset context",
+            "rms trend",
+            "baseline",
+            "data quality"
+          ],
+          "missing_information": [],
+          "requested_actions": [],
+          "constraints": {
+            "tenant_scope_known": true,
+            "permissions_known": true,
+            "action_execution_allowed": false
+          },
+          "confidence": 0.9
+        },
+        "plan": {
+          "plan_id": "plan_contract_fixture",
+          "objectives": [
+            "Verificar se RMS diverge do baseline."
+          ],
+          "investigation_questions": [
+            "A tendência RMS está acima da referência?"
+          ],
+          "suggested_capabilities": [
+            {
+              "name": "get_asset_rms"
+            }
+          ],
+          "dependencies": [],
+          "missing_information": [],
+          "stopping_conditions": [
+            "Evidência suficiente ou limitação explícita."
+          ],
+          "reason_codes": [
+            "RMS_DEVIATION"
+          ]
+        },
+        "conclusion": {
+          "conclusion_id": "conclusion_contract_fixture",
+          "claims": [
+            {
+              "claim_id": "claim_contract_fixture",
+              "statement": "A tendência RMS está elevada na evidência sintética.",
+              "supporting_evidence_ids": [
+                "evidence_contract_001"
+              ],
+              "contradictory_evidence_ids": [],
+              "limitation": "Evidência sintética para validação de contrato.",
+              "status": "supported"
+            }
+          ],
+          "supporting_evidence_ids": [
+            "evidence_contract_001"
+          ],
+          "contradictory_evidence_ids": [],
+          "limitations": [
+            "Não representa uma investigação real."
+          ],
+          "unresolved_points": [
+            "Baseline real não foi consultado."
+          ],
+          "reason_codes": [
+            "SYNTHETIC_CONTRACT_SMOKE"
+          ]
+        },
+        "evidence": {
+          "evidence_ids": [
+            "evidence_contract_001"
+          ],
+          "statuses": [
+            "complete"
+          ],
+          "relevant_results": [
+            {
+              "asset_id": "asset_B211",
+              "rms_trend": "elevated",
+              "source": "synthetic_fixture"
+            }
+          ]
+        },
+        "trace": {
+          "trace_id": "trace_contract_fixture",
+          "tool_call_count": 0,
+          "last_tool_name": null,
+          "last_call_id": null
+        }
+      },
+      "output": null,
+      "provider": "groq",
+      "model": "openai/gpt-oss-120b",
+      "prompt_version": "contract_smoke.v3.reporter",
+      "latency_ms": 1605.663,
+      "usage": {
+        "input_tokens": 737,
+        "output_tokens": 512,
+        "total_tokens": 1249
+      },
+      "attempt_count": 1,
+      "schema_valid": false,
+      "contract_valid": false,
+      "error_category": null,
+      "provider_message_sanitized": null,
+      "error": "LLMOutputValidationError: Saída do provider viola o schema esperado."
+    }
+  ]
+}

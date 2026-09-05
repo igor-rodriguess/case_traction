@@ -126,6 +126,7 @@
         "arguments": {
           "asset_id": "asset_B211"
         },
+        "details": {},
         "duration_ms": null,
         "result": null,
         "failure": null
@@ -143,6 +144,7 @@
         "arguments": {
           "asset_id": "asset_B211"
         },
+        "details": {},
         "duration_ms": 20.0,
         "result": {
           "operation": "get_asset",
@@ -174,6 +176,7 @@
         "arguments": {
           "asset_id": "asset_B211"
         },
+        "details": {},
         "duration_ms": null,
         "result": null,
         "failure": null
@@ -191,6 +194,7 @@
         "arguments": {
           "asset_id": "asset_B211"
         },
+        "details": {},
         "duration_ms": 30.0,
         "result": {
           "operation": "get_rms",

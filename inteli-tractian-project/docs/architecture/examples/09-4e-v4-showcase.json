@@ -1,0 +1,17 @@
+{
+  "experiment_version": "e2e-dev-v4",
+  "routing_version": "MODEL_ROUTING_V4",
+  "full_artifact": "experiments/e2e-dev-v4/showcase.json",
+  "validation": {"first_pass_valid_rate": 1.0, "repair_rate": 0.0, "failed_after_repair_rate": 0.0},
+  "cases": [
+    {"sample_id": "syn_u_dev_0001", "input_ref": "runs.jsonl/state.request", "understanding": "contextualize", "decisions": ["tool_call", "tool_call", "escalate"], "tools": ["get_asset_context", "search_industrial_knowledge"], "evidence_statuses": ["inconclusive", "partial"], "terminal_status": "SAFE_ESCALATION", "repair": false, "conclusion": null, "reporter": null, "errors": [], "tokens": 8365, "latency_ms": 9185.499},
+    {"sample_id": "syn_u_dev_0040", "input_ref": "runs.jsonl/state.request", "understanding": "mixed", "decisions": ["tool_call", "tool_call", "escalate"], "tools": ["get_asset_context", "list_asset_analyses"], "evidence_statuses": ["inconclusive", "complete"], "terminal_status": "SAFE_ESCALATION", "repair": false, "conclusion": null, "reporter": null, "errors": [], "tokens": 8648, "latency_ms": 7599.562},
+    {"sample_id": "syn_u_dev_0023", "input_ref": "runs.jsonl/state.request", "understanding": "investigate", "decisions": ["ask_user"], "tools": [], "evidence_statuses": [], "terminal_status": "AWAITING_REQUIRED_INFORMATION", "repair": false, "conclusion": null, "reporter": null, "errors": [], "tokens": 6289, "latency_ms": 7568.875},
+    {"sample_id": "syn_u_dev_0049", "input_ref": "runs.jsonl/state.request", "understanding": "investigate", "decisions": ["ask_user"], "tools": [], "evidence_statuses": [], "terminal_status": "AWAITING_REQUIRED_INFORMATION", "repair": false, "conclusion": null, "reporter": null, "errors": [], "tokens": 6314, "latency_ms": 6803.414},
+    {"sample_id": "syn_u_dev_0036", "input_ref": "runs.jsonl/state.request", "understanding": "mixed", "decisions": ["ask_user"], "tools": [], "evidence_statuses": [], "terminal_status": "AWAITING_REQUIRED_INFORMATION", "repair": false, "conclusion": null, "reporter": null, "errors": [], "tokens": 5890, "latency_ms": 5852.978}
+  ],
+  "trace_evidence_integrity": true,
+  "actions": 0,
+  "secrets_leaked": false,
+  "protected_splits_accessed": false
+}

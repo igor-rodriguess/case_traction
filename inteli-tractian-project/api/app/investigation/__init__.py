@@ -29,8 +29,10 @@ from app.investigation.state import (
     record_decision,
     synchronize_observability,
 )
+from app.investigation.completion_policy import CompletionAssessment, assess_completion_decision
 
 __all__ = [
+    "CompletionAssessment",
     "EvidenceLedgerSnapshot",
     "FinalResponse",
     "HumanHandoff",
@@ -58,4 +60,5 @@ __all__ = [
     "mark_failed",
     "record_decision",
     "synchronize_observability",
+    "assess_completion_decision",
 ]

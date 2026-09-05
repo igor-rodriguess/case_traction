@@ -1,0 +1,83 @@
+{
+  "experiment": "experiments/e2e-grounded-pilot-v1",
+  "fixture_type": "INTEGRATION_FIXTURE",
+  "request": "Consulte o cadastro atual do asset_S425 e informe seu nome, tipo, criticidade e status do sensor. Responda apenas com os campos retornados pela fonte e preserve qualquer limitação.",
+  "understanding": {
+    "request_class": "execute",
+    "investigation_targets": ["asset context"],
+    "requested_actions": [],
+    "action_execution_allowed": false
+  },
+  "plan": {
+    "objective": "Retrieve the registration details including name, type, criticality, and sensor status for asset_S425.",
+    "read_only": true
+  },
+  "investigator_decisions": [
+    {
+      "type": "tool_call",
+      "tool_request": {"tool_name": "get_asset_context", "arguments": {"asset_id": "asset_S425"}},
+      "validation": "FIRST_PASS_VALID",
+      "completion_policy": "USEFUL_READ_TOOL_ALLOWED"
+    },
+    {
+      "type": "answer",
+      "supporting_evidence_ids": ["trace_integration_fixture_asset_s425_facts_v1:evidence:000001"],
+      "validation": "FIRST_PASS_VALID",
+      "completion_policy": "GROUNDED_ANSWER_ALLOWED"
+    }
+  ],
+  "tool_result": {
+    "transport_ok": true,
+    "http_status": 200,
+    "semantic_status": "complete",
+    "path": "/assets/asset_S425",
+    "data": {"id": "asset_S425", "name": "Spindle secundário", "machine_type": "spindle", "criticality": "medium", "sensor_status": "online"}
+  },
+  "evidence_record": {
+    "evidence_id": "trace_integration_fixture_asset_s425_facts_v1:evidence:000001",
+    "source_call_id": "trace_integration_fixture_asset_s425_facts_v1:call:000001",
+    "source_trace_sequence": 6,
+    "tool_name": "get_asset_context",
+    "operation_kind": "READ"
+  },
+  "trace_event_types": [
+    "llm_decision_produced", "decision_validated", "decision_accepted", "tool_requested",
+    "tool_started", "tool_completed", "llm_decision_produced", "decision_validated",
+    "decision_accepted", "conclusion_created", "reporter_started", "reporter_completed"
+  ],
+  "investigation_conclusion": {
+    "claim": {
+      "claim_id": "claim_asset_S425",
+      "statement": "O ativo asset_S425 é Spindle secundário, do tipo spindle, com criticidade medium e sensor online.",
+      "supporting_evidence_ids": ["trace_integration_fixture_asset_s425_facts_v1:evidence:000001"],
+      "status": "supported"
+    }
+  },
+  "claim_lineage": {
+    "claim_id": "claim_asset_S425",
+    "evidence_id": "trace_integration_fixture_asset_s425_facts_v1:evidence:000001",
+    "source_call_id": "trace_integration_fixture_asset_s425_facts_v1:call:000001",
+    "trace_sequence": 6,
+    "tool_name": "get_asset_context",
+    "source_path": "/assets/asset_S425",
+    "valid": true
+  },
+  "reporter": {
+    "audience": "tractian_engineering_team",
+    "schema_valid": true,
+    "claim_preservation_rate": 1.0,
+    "evidence_reference_preservation_rate": 1.0,
+    "unsupported_claim_rate": 0.0,
+    "technical_report_id": "report_integration_fixture_asset_s425_facts_v1"
+  },
+  "run_timing": {
+    "started_at": "2026-09-05T02:29:22.151128Z",
+    "finished_at": "2026-09-05T02:29:30.060686Z",
+    "duration_ms": 7909.558
+  },
+  "final_status": "GROUNDED_COMPLETION",
+  "actions": 0,
+  "errors": [],
+  "secrets_leaked": false,
+  "protected_splits_accessed": false
+}

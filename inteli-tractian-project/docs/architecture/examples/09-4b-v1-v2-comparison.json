@@ -1,0 +1,17 @@
+{
+  "v1": {"experiment_version": "e2e-dev-v1", "routing_version": "MODEL_ROUTING_V1", "cases": 5, "llm_calls": 6, "tool_calls": 0, "reports": 0},
+  "diagnostics": {"groq_understanding": ["truncation_confirmed", "rate_limit_unknown"], "gemini_investigator": ["other_contract_violation"]},
+  "changes": ["understanding max_output_tokens 1200->1800", "20 second inter-case throttle", "e2e_investigator_v2 explicit conditional invariants"],
+  "v2": {"experiment_version": "e2e-dev-v2", "routing_version": "MODEL_ROUTING_V2", "cases": 5, "llm_calls": 25, "tool_calls": 13, "reports": 0, "errors": {"LLMOutputValidationError": 1, "INVESTIGATION_NOT_ANSWERED": 2, "INSUFFICIENT_EVIDENCE": 2}},
+  "case_comparison": [
+    {"sample_id": "syn_u_dev_0001", "v1_status": "failed_before_tool", "v2_status": "failed_contract_after_2_tools"},
+    {"sample_id": "syn_u_dev_0040", "v1_status": "understanding_truncated", "v2_status": "investigation_not_answered_after_5_tools"},
+    {"sample_id": "syn_u_dev_0023", "v1_status": "groq_rate_limit", "v2_status": "insufficient_evidence_no_tools"},
+    {"sample_id": "syn_u_dev_0049", "v1_status": "groq_rate_limit", "v2_status": "insufficient_evidence_no_tools"},
+    {"sample_id": "syn_u_dev_0036", "v1_status": "groq_rate_limit", "v2_status": "investigation_not_answered_after_6_tools"}
+  ],
+  "component_comparison": {"understanding": "V2 completed all five without recorded rate_limit", "investigator": "V2 reached all five but did not produce a grounded ANSWER", "tools": "V2 exercised 13 READ calls with correlated ledger records", "reporter": "not reached in either round"},
+  "regressions": ["V2 still has one InvestigationDecision contract failure", "V2 has no completed reports"],
+  "remaining_issues": ["investigator stopping behavior", "grounded answer/conclusion path", "reporter unexercised"],
+  "recommendation": "FIX_BEFORE_FULL_DEV"
+}

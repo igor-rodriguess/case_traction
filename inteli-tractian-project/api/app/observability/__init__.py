@@ -4,6 +4,7 @@ from app.observability.executor import TrackedToolExecutor
 from app.observability.ledger import EvidenceLedger
 from app.observability.models import EvidenceRecord, TraceEvent, TraceEventType
 from app.observability.trace import ExecutionTrace
+from app.observability.run import RunTiming
 
 __all__ = [
     "EvidenceLedger",
@@ -12,4 +13,5 @@ __all__ = [
     "TraceEvent",
     "TraceEventType",
     "TrackedToolExecutor",
+    "RunTiming",
 ]
