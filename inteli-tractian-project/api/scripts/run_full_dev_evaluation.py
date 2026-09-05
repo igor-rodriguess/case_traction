@@ -1209,6 +1209,17 @@ def write_artifacts(
 
     target = output_dir or OUTPUT_DIR
     target.mkdir(parents=True, exist_ok=True)
+
+    # Um caso derrubado por cota não foi medido: contá-lo como FAILED atribuiria
+    # ao sistema uma falha que pertence ao provider. Ele sai da população das
+    # métricas e permanece listado como pendente.
+    quota_blocked = [
+        run
+        for run in runs
+        if any(error["code"] == EvaluationErrorCode.RATE_LIMIT.value for error in run.get("errors", []))
+    ]
+    blocked_ids = {run["sample_id"] for run in quota_blocked}
+    runs = [run for run in runs if run["sample_id"] not in blocked_ids]
     executed_ids = {run["sample_id"] for run in runs}
     aggregate = {
         "experiment_version": EXPERIMENT_VERSION,
@@ -1216,8 +1227,11 @@ def write_artifacts(
         "dataset": {
             "split": SPLIT,
             "sample_count": len(sample_ids),
+            "measured_cases": len(runs),
             "executed_cases": len(runs),
+            "quota_blocked_cases": sorted(blocked_ids),
             "pending_cases": [item for item in sample_ids if item not in executed_ids],
+            "coverage_of_split": round(len(runs) / len(sample_ids), 4) if sample_ids else None,
         },
         "e2e": e2e_metrics(runs),
         "understanding": understanding_metrics(runs, samples_by_id),

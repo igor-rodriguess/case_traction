@@ -41,6 +41,23 @@ def _verdict(*, ok: bool, warn: bool) -> QualityVerdict:
     return QualityVerdict.PASS_WITH_WARNINGS if warn else QualityVerdict.FAIL
 
 
+MINIMUM_SPLIT_COVERAGE = 0.80
+"""Fração do split que precisa ter sido medida para um veredicto ser interpretável.
+
+Uma rodada interrompida produz números altos sobre poucos casos fáceis. Sem este
+piso, três casos `contextualize` corretos bastariam para declarar um componente
+`NO_TRAINING_NEEDED` — exatamente o tipo de conclusão que a avaliação existe para
+impedir.
+"""
+
+
+def split_coverage(aggregate: dict[str, Any]) -> float:
+    dataset = aggregate.get("dataset", {})
+    measured = dataset.get("measured_cases", dataset.get("executed_cases", 0))
+    total = dataset.get("sample_count") or 0
+    return measured / total if total else 0.0
+
+
 def _num(value: Any, default: float) -> float:
     """`None` significa 'não observado' e nunca deve ser lido como zero favorável."""
 
@@ -245,6 +262,8 @@ def overall_status(gates: list[GateResult], aggregate: dict[str, Any]) -> str:
     structural = {"ARCHITECTURE_STABILITY", "CONTRACT_RELIABILITY", "GROUNDING_QUALITY"}
     if aggregate["run_status"] != "COMPLETED":
         return "RUN_PAUSED_PROVIDER_QUOTA"
+    if split_coverage(aggregate) < MINIMUM_SPLIT_COVERAGE:
+        return "INSUFFICIENT_SPLIT_COVERAGE"
     if any(by_name.get(name) is QualityVerdict.FAIL for name in structural):
         return "FIX_ARCHITECTURE_BEFORE_TRAINING"
     if aggregate["security"]["action_decisions"] or aggregate["security"]["action_tools_executed"]:
@@ -266,6 +285,22 @@ def training_decisions(aggregate: dict[str, Any], coverage: dict[str, Any]) -> l
     reporter = aggregate["reporter"]
     correlation = aggregate["data_coverage_correlation"]
     decisions: list[ComponentDecision] = []
+
+    coverage_of_split = split_coverage(aggregate)
+    if coverage_of_split < MINIMUM_SPLIT_COVERAGE:
+        # Amostra insuficiente: nenhum componente pode ser absolvido nem condenado.
+        return [
+            ComponentDecision(
+                component=name,
+                assessment=TrainingAssessment.INSUFFICIENT_EVIDENCE_TO_DECIDE,
+                rationale=(
+                    f"Apenas {coverage_of_split:.0%} do split foi medido; o mínimo interpretável "
+                    f"é {MINIMUM_SPLIT_COVERAGE:.0%}."
+                ),
+                observed={"split_coverage": round(coverage_of_split, 4), "minimum": MINIMUM_SPLIT_COVERAGE},
+            )
+            for name in ("understanding", "planner", "investigator", "reporter")
+        ]
 
     # Understanding — comparado ao target determinístico do próprio split.
     schema_rate = _num(understanding["schema_valid_rate"], 0.0)

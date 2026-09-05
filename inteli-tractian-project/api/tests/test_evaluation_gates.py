@@ -7,6 +7,9 @@ from app.evaluation.taxonomy import QualityVerdict, TrainingAssessment
 def _aggregate(**overrides):
     base = {
         "run_status": "COMPLETED",
+        # Por padrão a fixture representa uma rodada completa; os testes de
+        # amostra parcial sobrescrevem `dataset` explicitamente.
+        "dataset": {"sample_count": 60, "measured_cases": 60},
         "e2e": {
             "total_cases": 60,
             "valid_terminal_state_rate": 1.0,
@@ -163,3 +166,25 @@ def test_unreached_reporter_cannot_be_declared_good() -> None:
     decisions = {item.component: item.assessment for item in training_decisions(aggregate, _coverage())}
 
     assert decisions["reporter"] is TrainingAssessment.INSUFFICIENT_EVIDENCE_TO_DECIDE
+
+
+def test_partial_run_cannot_absolve_any_component() -> None:
+    """Regressão da Etapa 09.7: 3 casos fáceis declaravam NO_TRAINING_NEEDED."""
+
+    aggregate = _aggregate()
+    aggregate["dataset"] = {"sample_count": 60, "measured_cases": 3}
+
+    decisions = {item.component: item.assessment for item in training_decisions(aggregate, _coverage())}
+
+    assert set(decisions.values()) == {TrainingAssessment.INSUFFICIENT_EVIDENCE_TO_DECIDE}
+    assert overall_status(evaluate_gates(aggregate, _coverage()), aggregate) == "INSUFFICIENT_SPLIT_COVERAGE"
+
+
+def test_complete_run_is_judged_normally() -> None:
+    aggregate = _aggregate()
+    aggregate["dataset"] = {"sample_count": 60, "measured_cases": 60}
+
+    decisions = {item.component: item.assessment for item in training_decisions(aggregate, _coverage())}
+
+    assert decisions["understanding"] is TrainingAssessment.NO_TRAINING_NEEDED
+    assert overall_status(evaluate_gates(aggregate, _coverage()), aggregate) == "READY_FOR_HOLDOUT"
