@@ -16,7 +16,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from time import perf_counter
 from pathlib import Path
 from time import sleep
 from typing import Any
@@ -101,6 +102,19 @@ from scripts.run_e2e_dev_pilot import (
 
 EXPERIMENT_VERSION = "e2e-full-dev-v2"
 ROUTING_VERSION = "MODEL_ROUTING_V5"
+
+# Etapa 09.8: o Understanding pode ser roteado ao Gemini para contornar a cota
+# diaria do Groq. Coorte separada, nunca misturada com a V2: o experimento e o
+# routing mudam junto com o provider, porque a roteirizacao de fato mudou.
+UNDERSTANDING_FALLBACK = {
+    "provider": ProviderName.GEMINI,
+    "experiment_version": "e2e-full-dev-v2b",
+    "routing_version": "MODEL_ROUTING_V6",
+    "routing_note": (
+        "Derivado do MODEL_ROUTING_V5 trocando apenas o provider do Understanding, "
+        "de Groq para Gemini. Demais papeis, prompts, schemas e politicas identicos."
+    ),
+}
 ROUTING_NOTE = (
     "Routing assignment unchanged. Version increment reflects configuration, prompt and capability changes."
 )
@@ -276,10 +290,16 @@ def run_case(
     providers: dict[ProviderName, Any],
     client: TractianClient,
     coverage: CaseCoverage,
+    understanding_provider: ProviderName = ProviderName.GROQ,
 ) -> dict[str, Any]:
     """Executa um caso DEV de ponta a ponta e devolve o registro persistível."""
 
     started_at = datetime.now(timezone.utc)
+    # `datetime.now` é relógio de parede e pode andar para trás (ajuste de NTP,
+    # fuso, correção manual). Duração é medida com relógio monotônico e
+    # `finished_at` é derivado da âncora, para que um salto do sistema não
+    # produza duração negativa nem invalide o RunTiming.
+    started_monotonic = perf_counter()
     request = runtime_payload(sample)
     runtime = create_investigation_state(
         request,
@@ -299,9 +319,9 @@ def run_case(
     contract_failsafe = False
 
     try:
-        # --- Understanding / Groq ------------------------------------------
+        # --- Understanding (Groq por padrao; Gemini na coorte V2b) ---------
         response = _call(
-            providers[ProviderName.GROQ],
+            providers[understanding_provider],
             _request(
                 "understanding",
                 UNDERSTANDING_SYSTEM_PROMPT,
@@ -746,7 +766,8 @@ def run_case(
             "phase": state.phase.value,
         },
     )
-    finished_at = datetime.now(timezone.utc)
+    elapsed_seconds = max(0.0, perf_counter() - started_monotonic)
+    finished_at = started_at + timedelta(seconds=elapsed_seconds)
     timing = RunTiming.between(started_at, finished_at)
     return {
         "run_id": f"fulldev_{sample.sample_id}",
@@ -756,7 +777,7 @@ def run_case(
         "experiment_version": EXPERIMENT_VERSION,
         "routing_version": ROUTING_VERSION,
         "providers": {
-            "understanding": "groq",
+            "understanding": understanding_provider.value,
             "planner": "gemini",
             "investigator": "gemini",
             "reporter": "gemini",
@@ -902,7 +923,7 @@ def build_showcase(runs: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def build_manifest(sample_ids: list[str], configs: dict[ProviderName, Any]) -> dict[str, Any]:
+def build_manifest(sample_ids: list[str], configs: dict[ProviderName, Any], understanding_provider: ProviderName = ProviderName.GROQ) -> dict[str, Any]:
     return {
         "experiment_version": EXPERIMENT_VERSION,
         "phase": "B_FULL_DEV",
@@ -923,7 +944,10 @@ def build_manifest(sample_ids: list[str], configs: dict[ProviderName, Any]) -> d
             "tools_returning_timestamped_data": list(_TEMPORAL_MATRIX.tools_returning_timestamped_data),
         },
         "routing": {
-            "understanding": {"provider": "groq", "model": configs[ProviderName.GROQ].model},
+            "understanding": {
+                "provider": understanding_provider.value,
+                "model": configs[understanding_provider].model,
+            },
             "planner": {"provider": "gemini", "model": configs[ProviderName.GEMINI].model},
             "investigator": {"provider": "gemini", "model": configs[ProviderName.GEMINI].model},
             "reporter": {"provider": "gemini", "model": configs[ProviderName.GEMINI].model},
@@ -1012,18 +1036,35 @@ def main(argv: list[str] | None = None) -> int:
         help="Executa apenas os casos de SMOKE_SAMPLE_IDS num diretório separado.",
     )
     parser.add_argument(
+        "--understanding-provider",
+        choices=("groq", "gemini"),
+        default="groq",
+        help="Provider do Understanding. 'gemini' grava na coorte e2e-full-dev-v2b.",
+    )
+    parser.add_argument(
         "--aggregate-only",
         action="store_true",
         help="Recalcula métricas e artefatos a partir de runs.jsonl, sem chamar provider.",
     )
     args = parser.parse_args(argv)
 
+    # A troca do provider do Understanding cria uma coorte separada: experimento,
+    # routing e diretorio mudam juntos, para que V2 (Groq) e V2b (Gemini) nunca
+    # sejam somadas como se fossem uma unica condicao experimental.
+    global EXPERIMENT_VERSION, ROUTING_VERSION
+    understanding_provider = ProviderName(args.understanding_provider)
+    experiment_dir = OUTPUT_DIR
+    if understanding_provider is UNDERSTANDING_FALLBACK["provider"]:
+        EXPERIMENT_VERSION = UNDERSTANDING_FALLBACK["experiment_version"]
+        ROUTING_VERSION = UNDERSTANDING_FALLBACK["routing_version"]
+        experiment_dir = ROOT / "experiments" / EXPERIMENT_VERSION
+
     load_local_env(ROOT / "api" / ".env")
     configs = default_provider_configs()
     all_samples = load_dev_split()
     # O smoke valida só as correções da etapa e nunca escreve no diretório da
     # rodada completa, para não misturar as duas evidências.
-    output_dir = OUTPUT_DIR.with_name(OUTPUT_DIR.name + "-smoke") if args.smoke else OUTPUT_DIR
+    output_dir = experiment_dir.with_name(experiment_dir.name + "-smoke") if args.smoke else experiment_dir
     samples = (
         tuple(sample for sample in all_samples if sample.sample_id in SMOKE_SAMPLE_IDS)
         if args.smoke
@@ -1043,7 +1084,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"status": "DATASET_VALIDATION_FAILED", **dataset_report.model_dump(mode="json", exclude={"samples"})}, ensure_ascii=False))
         return 2
 
-    manifest = build_manifest(sample_ids, configs)
+    manifest = build_manifest(sample_ids, configs, understanding_provider)
     if args.aggregate_only:
         runs = load_completed_runs(output_dir / "runs.jsonl")
         if not runs:
@@ -1111,22 +1152,46 @@ def main(argv: list[str] | None = None) -> int:
         _write(manifest_path, manifest)
 
     runs = load_completed_runs(runs_path)
-    # Um caso derrubado por quota não está concluído: ele nunca chegou a ser
-    # medido. Mantê-lo no artefato mas fora de `done` deixa a retomada refazê-lo.
-    quota_blocked = {
+    # §13: a coorte Gemini executa apenas o que a coorte Groq nao mediu. Os
+    # `sample_id` ja medidos na V2 saem da fila sem que seus runs sejam copiados
+    # para ca — as duas populacoes permanecem em arquivos e manifestos distintos.
+    previously_measured: set[str] = set()
+    if understanding_provider is UNDERSTANDING_FALLBACK["provider"] and not args.smoke:
+        groq_runs = load_completed_runs(ROOT / "experiments" / "e2e-full-dev-v2" / "runs.jsonl")
+        latest_groq = {run["sample_id"]: run for run in groq_runs}
+        previously_measured = {
+            sid
+            for sid, run in latest_groq.items()
+            if not (run.get("errors") and all(e.get("primary_layer") == PrimaryLayer.PROVIDER.value for e in run["errors"]))
+        }
+        if previously_measured:
+            print(
+                f"COORTE: {len(previously_measured)} caso(s) ja medidos com Groq na V2 nao serao repetidos; "
+                f"a V2b executa os {len(sample_ids) - len(previously_measured)} restantes."
+            )
+    # Um caso derrubado pela infraestrutura nunca chegou a ser medido: quota,
+    # 503 e timeout do provider são todos a mesma situação. Mantê-lo no artefato
+    # como evidência, mas fora de `done`, deixa a retomada refazê-lo. Se houver
+    # qualquer causa não-provider junto, o caso foi medido e não se repete.
+    infrastructure_blocked = {
         run["sample_id"]
         for run in runs
-        if any(error["code"] == EvaluationErrorCode.RATE_LIMIT.value for error in run.get("errors", []))
+        if run.get("errors") and all(error.get("primary_layer") == PrimaryLayer.PROVIDER.value for error in run["errors"])
     }
-    runs = [run for run in runs if run["sample_id"] not in quota_blocked]
+    runs = [run for run in runs if run["sample_id"] not in infrastructure_blocked]
     done = {run["sample_id"] for run in runs}
-    if quota_blocked:
-        print(f"AVISO: {len(quota_blocked)} caso(s) interrompidos por quota serão reexecutados.")
-    pending = [sample for sample in samples if sample.sample_id not in done]
+    if infrastructure_blocked:
+        print(
+            f"AVISO: {len(infrastructure_blocked)} caso(s) derrubados por infraestrutura do provider "
+            f"serão reexecutados: {sorted(infrastructure_blocked)}"
+        )
+    pending = [sample for sample in samples if sample.sample_id not in done | previously_measured]
     if args.limit is not None:
         pending = pending[: max(0, args.limit)]
 
-    if quota_blocked:
+    if infrastructure_blocked:
+        # Reescreve o arquivo sem as tentativas derrubadas pela infraestrutura,
+        # para que a reexecucao nao gere duplicata do mesmo sample_id (§7).
         _write_lines(runs_path, runs)
 
     run_status = RunStatus.COMPLETED
@@ -1140,7 +1205,9 @@ def main(argv: list[str] | None = None) -> int:
                 if index or done:
                     sleep(args.throttle_seconds)
                 try:
-                    record = run_case(sample, providers, client, coverage_by_sample[sample.sample_id])
+                    record = run_case(
+                        sample, providers, client, coverage_by_sample[sample.sample_id], understanding_provider
+                    )
                 except ProviderQuotaExceeded as exc:
                     run_status = RunStatus.RUN_PAUSED_PROVIDER_QUOTA
                     print(f"RUN_PAUSED_PROVIDER_QUOTA {exc}")
@@ -1216,7 +1283,7 @@ def write_artifacts(
     quota_blocked = [
         run
         for run in runs
-        if any(error["code"] == EvaluationErrorCode.RATE_LIMIT.value for error in run.get("errors", []))
+        if run.get("errors") and all(error.get("primary_layer") == PrimaryLayer.PROVIDER.value for error in run["errors"])
     ]
     blocked_ids = {run["sample_id"] for run in quota_blocked}
     runs = [run for run in runs if run["sample_id"] not in blocked_ids]

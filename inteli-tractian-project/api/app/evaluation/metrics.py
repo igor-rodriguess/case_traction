@@ -335,9 +335,25 @@ def provider_metrics(runs: Sequence[dict[str, Any]]) -> dict[str, Any]:
     return by_provider
 
 
+def provider_caused(run: dict[str, Any]) -> bool:
+    """A falha do caso veio da infraestrutura, não de uma decisão do agente.
+
+    Um 5xx do provider derruba o caso sem que o agente tenha escolhido nada.
+    Contá-lo como falha comportamental atribuiria ao modelo um problema que não
+    é dele — a mesma distinção já aplicada à quota, agora estendida.
+    """
+
+    errors = run.get("errors") or []
+    return bool(errors) and all(error.get("primary_layer") == "PROVIDER" for error in errors)
+
+
 def e2e_metrics(runs: Sequence[dict[str, Any]]) -> dict[str, Any]:
     total = len(runs)
     terminal = Counter(run.get("terminal_status") for run in runs)
+    failed = [run for run in runs if run.get("terminal_status") == TerminalStatus.FAILED.value]
+    provider_failures = [run for run in failed if provider_caused(run)]
+    behavioural_failures = [run for run in failed if not provider_caused(run)]
+    behavioural_population = total - len(provider_failures)
     durations = [float(run.get("duration_ms") or 0) for run in runs]
     llm_calls = sum(len(_llm_entries(run)) for run in runs)
     tool_calls = sum(
@@ -364,6 +380,19 @@ def e2e_metrics(runs: Sequence[dict[str, Any]]) -> dict[str, Any]:
             terminal.get(TerminalStatus.AWAITING_REQUIRED_INFORMATION.value, 0), total
         ),
         "failure_rate": _rate(terminal.get(TerminalStatus.FAILED.value, 0), total),
+        "behavioral_failure_rate": _rate(len(behavioural_failures), behavioural_population),
+        "behavioral_failure_count": len(behavioural_failures),
+        "provider_failure_count": len(provider_failures),
+        "provider_failure_sample_ids": [run["sample_id"] for run in provider_failures],
+        "behavioral_population": behavioural_population,
+        "valid_terminal_state_rate_excluding_provider": _rate(
+            sum(
+                run.get("terminal_status") in {item.value for item in VALID_TERMINAL_STATUSES}
+                for run in runs
+                if not provider_caused(run)
+            ),
+            behavioural_population,
+        ),
         "dead_end_rate": _rate(
             sum(run.get("failure_category") == "DEAD_END" for run in runs), total
         ),

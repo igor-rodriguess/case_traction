@@ -591,3 +591,126 @@ def test_aggregation_records_pending_cases_when_the_run_paused(tmp_path) -> None
 
     assert aggregate["dataset"]["pending_cases"] == sample_ids[1:]
     assert aggregate["final_status"] == "RUN_PAUSED_PROVIDER_QUOTA"
+
+
+def test_provider_failures_are_excluded_from_the_behavioural_population() -> None:
+    """§14 da Etapa 09.7B: um 5xx do provider não é falha de decisão do agente."""
+
+    provider_error = EvaluationError.of(
+        EvaluationErrorCode.PROVIDER_ERROR, subcategory="http_status", detail="5xx transitório"
+    ).model_dump(mode="json")
+    behavioural_error = EvaluationError.of(
+        EvaluationErrorCode.INVALID_CONCLUSION, detail="grounding não materializável"
+    ).model_dump(mode="json")
+    runs = [
+        _run("a", TerminalStatus.SAFE_ESCALATION),
+        _run("b", TerminalStatus.GROUNDED_COMPLETION),
+        _run("c", TerminalStatus.FAILED, errors=[provider_error]),
+        _run("d", TerminalStatus.FAILED, errors=[behavioural_error]),
+    ]
+
+    metrics = e2e_metrics(runs)
+
+    assert metrics["failure_rate"] == 0.5
+    assert metrics["provider_failure_count"] == 1
+    assert metrics["provider_failure_sample_ids"] == ["c"]
+    assert metrics["behavioral_failure_count"] == 1
+    assert metrics["behavioral_population"] == 3
+    assert metrics["behavioral_failure_rate"] == round(1 / 3, 4)
+    assert metrics["valid_terminal_state_rate_excluding_provider"] == round(2 / 3, 4)
+
+
+def test_a_case_with_mixed_causes_stays_behavioural() -> None:
+    """Se houver qualquer causa não-provider, a falha continua sendo do agente."""
+
+    mixed = [
+        EvaluationError.of(EvaluationErrorCode.PROVIDER_ERROR, detail="5xx").model_dump(mode="json"),
+        EvaluationError.of(EvaluationErrorCode.INVALID_CONCLUSION, detail="grounding").model_dump(mode="json"),
+    ]
+
+    metrics = e2e_metrics([_run("a", TerminalStatus.FAILED, errors=mixed)])
+
+    assert metrics["provider_failure_count"] == 0
+    assert metrics["behavioral_failure_count"] == 1
+
+
+def test_provider_killed_cases_return_to_the_queue_on_resume() -> None:
+    """§7 da 09.7B: 503 e quota nunca foram medidos; repetir é obrigatório."""
+
+    import scripts.run_full_dev_evaluation as runner
+
+    source = inspect.getsource(runner.main)
+    assert "infrastructure_blocked" in source
+    assert 'error.get("primary_layer") == PrimaryLayer.PROVIDER.value' in source
+    assert "run[\"sample_id\"] not in infrastructure_blocked" in source
+
+
+def test_a_case_with_any_behavioural_cause_is_not_repeated(tmp_path) -> None:
+    """Falha do agente foi medida: reexecutar apagaria o resultado observado."""
+
+    from app.evaluation.taxonomy import PrimaryLayer
+
+    provider_only = [EvaluationError.of(EvaluationErrorCode.PROVIDER_ERROR, detail="503").model_dump(mode="json")]
+    mixed = provider_only + [
+        EvaluationError.of(EvaluationErrorCode.INVALID_CONCLUSION, detail="grounding").model_dump(mode="json")
+    ]
+
+    def blocked(errors):
+        return bool(errors) and all(e.get("primary_layer") == PrimaryLayer.PROVIDER.value for e in errors)
+
+    assert blocked(provider_only) is True
+    assert blocked(mixed) is False
+    assert blocked([]) is False
+
+
+def test_main_dry_run_executes_without_nameerror(monkeypatch, tmp_path) -> None:
+    """Regressão 09.7B: um rename deixou `quota_blocked` órfão e só quebrou em runtime.
+
+    Os testes anteriores liam o código-fonte de `main`; ler texto não prova que a
+    função executa. Este exercita o caminho real, sem `--execute` e sem rede.
+    """
+
+    import scripts.run_full_dev_evaluation as runner
+
+    class _FakeClient:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return False
+
+    monkeypatch.setattr(runner, "TractianClient", lambda *a, **k: _FakeClient())
+    monkeypatch.setattr(runner, "audit_coverage", lambda samples, client: _coverage_report([s.sample_id for s in samples]))
+
+    assert runner.main([]) == 0
+
+
+def test_run_duration_survives_a_backwards_clock() -> None:
+    """Regressão 09.7B: o relógio do sistema voltou 2h20 e matou a rodada no caso 30.
+
+    Subtrair duas leituras de `datetime.now` mede o relógio de parede, não o
+    tempo decorrido. `RunTiming` exige duração não-negativa, então um ajuste de
+    NTP derrubava o runner inteiro.
+    """
+
+    import scripts.run_full_dev_evaluation as runner
+
+    source = inspect.getsource(runner.run_case)
+    assert "perf_counter()" in source, "duração precisa vir de relógio monotônico"
+    assert "started_at + timedelta(seconds=elapsed_seconds)" in source
+    assert "finished_at = datetime.now(timezone.utc)" not in source
+
+
+def test_run_timing_rejects_a_negative_duration() -> None:
+    """O contrato que pegou o defeito continua estrito."""
+
+    from datetime import datetime, timedelta, timezone
+
+    from app.observability import RunTiming
+
+    start = datetime.now(timezone.utc)
+    with pytest.raises(ValueError):
+        RunTiming.between(start, start - timedelta(hours=2))
+
+    timing = RunTiming.between(start, start + timedelta(seconds=1.5))
+    assert timing.duration_ms == 1500.0

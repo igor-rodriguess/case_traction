@@ -1,0 +1,1058 @@
+{
+  "experiment_version": "e2e-full-dev-v2",
+  "routing_version": "MODEL_ROUTING_V5",
+  "run_status": "RUN_PAUSED_PROVIDER_QUOTA",
+  "measured_cases": 5,
+  "split_size": 60,
+  "coverage_of_split": 0.0833,
+  "categories_present": [
+    "awaiting_information",
+    "data_coverage_gap",
+    "execute_classified_correctly",
+    "real_error",
+    "safe_escalation",
+    "safe_temporal_handling",
+    "understanding_improvement"
+  ],
+  "categories_absent": [
+    "previously_truncated_planner"
+  ],
+  "absent_because": "a rodada parou em 3 de 60 casos por esgotamento da cota diária do provider",
+  "paired_cases": {
+    "syn_u_dev_0001": {
+      "request": {
+        "message": "Você consegue verificar o que significa tendência radial para redutor secundário asset_B211 no turno noturno e qual fonte técnica deve orientar a interpretação desde o último turno?",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_01",
+          "asset_refs": [
+            "asset_B211"
+          ],
+          "role": "operator",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "training_tags": [
+        "contextualize",
+        "easy",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "coverage": {
+        "alignment": "PARTIALLY_ALIGNED",
+        "grounded_answer_reachable": false,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API",
+          "GROUNDED_ANSWER_NOT_REACHABLE_FROM_ASSET_RECORD"
+        ]
+      },
+      "primary_failure_layer": "TOOL",
+      "v1": {
+        "terminal_status": "SAFE_ESCALATION",
+        "failure_category": null,
+        "request_class": "contextualize",
+        "requested_actions": [],
+        "planner": {
+          "schema_valid": true,
+          "finish_reason": "STOP",
+          "output_tokens": 350
+        },
+        "investigator_decisions": [
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "INFORMATIONAL_INTENT",
+              "READ_ONLY_INVESTIGATION"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "get_asset_context",
+            "arguments": {
+              "asset_id": "asset_B211"
+            }
+          },
+          {
+            "type": "escalate",
+            "reason_codes": [
+              "INCONCLUSIVE_EVIDENCE",
+              "CONTEXT_NOT_FOUND"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "SAFE_ESCALATION_ACCEPTED",
+            "tool": null,
+            "arguments": null
+          }
+        ],
+        "temporal_policy": null,
+        "tools_executed": [
+          "get_asset_context"
+        ],
+        "evidence": [
+          {
+            "evidence_id": "trace_syn_u_dev_0001:evidence:000001",
+            "tool_name": "get_asset_context",
+            "evidence_status": "inconclusive",
+            "source_call_id": "trace_syn_u_dev_0001:call:000001"
+          }
+        ],
+        "trace_event_types": [
+          "understanding_completed",
+          "planner_completed",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "terminal_state_reached"
+        ],
+        "errors": [],
+        "duration_ms": 6474.746
+      },
+      "v2": {
+        "terminal_status": "SAFE_ESCALATION",
+        "failure_category": null,
+        "request_class": "contextualize",
+        "requested_actions": [],
+        "planner": {
+          "schema_valid": true,
+          "finish_reason": "STOP",
+          "output_tokens": 230
+        },
+        "investigator_decisions": [
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "ASSET_CONTEXT_REQUIRED",
+              "INITIAL_INVESTIGATION"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "get_asset_context",
+            "arguments": {
+              "asset_id": "asset_B211"
+            }
+          },
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "ASSET_CONTEXT_INCONCLUSIVE",
+              "NEED_TECHNICAL_DEFINITION"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "search_industrial_knowledge",
+            "arguments": {
+              "query": "tendencia radial redutor secundario",
+              "knowledge_type": "glossary"
+            }
+          },
+          {
+            "type": "escalate",
+            "reason_codes": [
+              "EVIDENCE_EXHAUSTED",
+              "INCONCLUSIVE_ASSET_CONTEXT",
+              "KNOWLEDGE_SEARCH_EMPTY"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "SAFE_ESCALATION_ACCEPTED",
+            "tool": null,
+            "arguments": null
+          }
+        ],
+        "temporal_policy": {
+          "temporal_request_detected": true,
+          "relative_reference_detected": true,
+          "filterable_tools": [],
+          "timestamped_tools": [
+            "list_asset_analyses",
+            "get_analysis_details",
+            "get_asset_rms",
+            "get_asset_data_quality",
+            "get_model_capabilities"
+          ],
+          "reason_code": "TEMPORAL_FILTER_UNSUPPORTED",
+          "handling": "PROCEED_WITHOUT_FILTER",
+          "guidance": "Nenhuma tool aceita recorte temporal. Não invente argumentos como time_window, hours ou window: eles não existem no schema e serão rejeitados. Consulte as tools que devolvem dado datado e registre a limitação temporal na conclusão."
+        },
+        "tools_executed": [
+          "get_asset_context",
+          "search_industrial_knowledge"
+        ],
+        "evidence": [
+          {
+            "evidence_id": "trace_syn_u_dev_0001:evidence:000001",
+            "tool_name": "get_asset_context",
+            "evidence_status": "inconclusive",
+            "source_call_id": "trace_syn_u_dev_0001:call:000001"
+          },
+          {
+            "evidence_id": "trace_syn_u_dev_0001:evidence:000002",
+            "tool_name": "search_industrial_knowledge",
+            "evidence_status": "partial",
+            "source_call_id": "trace_syn_u_dev_0001:call:000002"
+          }
+        ],
+        "trace_event_types": [
+          "understanding_completed",
+          "planner_completed",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "terminal_state_reached"
+        ],
+        "errors": [],
+        "duration_ms": 78223.668
+      }
+    },
+    "syn_u_dev_0008": {
+      "request": {
+        "message": "Pode confirmar com os dados o que significa tendência radial para bomba de circulação asset_S425 depois de ajuste operacional e qual fonte técnica deve orientar a interpretação nesta semana?",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_01",
+          "asset_refs": [
+            "asset_S425"
+          ],
+          "role": "maintenance_analyst",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "training_tags": [
+        "contextualize",
+        "easy",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "coverage": {
+        "alignment": "MISALIGNED",
+        "grounded_answer_reachable": true,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "DESCRIPTOR_CONTRADICTS_API_RECORD",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API"
+        ]
+      },
+      "primary_failure_layer": "DATA",
+      "v1": {
+        "terminal_status": "FAILED",
+        "failure_category": "UNCLASSIFIED_ERROR",
+        "request_class": "mixed",
+        "requested_actions": [],
+        "planner": {
+          "schema_valid": true,
+          "finish_reason": "STOP",
+          "output_tokens": 359
+        },
+        "investigator_decisions": [],
+        "temporal_policy": null,
+        "tools_executed": [
+          "get_asset_context"
+        ],
+        "evidence": [
+          {
+            "evidence_id": "trace_syn_u_dev_0008:evidence:000001",
+            "tool_name": "get_asset_context",
+            "evidence_status": "complete",
+            "source_call_id": "trace_syn_u_dev_0008:call:000001"
+          }
+        ],
+        "trace_event_types": [
+          "understanding_completed",
+          "planner_completed",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "terminal_state_reached"
+        ],
+        "errors": [
+          {
+            "code": "PROVIDER_ERROR",
+            "subcategory": "http_status",
+            "primary_layer": "PROVIDER",
+            "detail_sanitized": "investigator: Provider limitou ou falhou temporariamente."
+          }
+        ],
+        "duration_ms": 9268.372
+      },
+      "v2": {
+        "terminal_status": "AWAITING_REQUIRED_INFORMATION",
+        "failure_category": null,
+        "request_class": "mixed",
+        "requested_actions": [],
+        "planner": {
+          "schema_valid": true,
+          "finish_reason": "STOP",
+          "output_tokens": 377
+        },
+        "investigator_decisions": [
+          {
+            "type": "ask_user",
+            "reason_codes": [
+              "MISSING_TIME_WINDOW"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "EXTERNAL_INFORMATION_REQUIRED",
+            "tool": null,
+            "arguments": null
+          }
+        ],
+        "temporal_policy": {
+          "temporal_request_detected": true,
+          "relative_reference_detected": true,
+          "filterable_tools": [],
+          "timestamped_tools": [
+            "list_asset_analyses",
+            "get_analysis_details",
+            "get_asset_rms",
+            "get_asset_data_quality",
+            "get_model_capabilities"
+          ],
+          "reason_code": "TEMPORAL_FILTER_UNSUPPORTED",
+          "handling": "PROCEED_WITHOUT_FILTER",
+          "guidance": "Nenhuma tool aceita recorte temporal. Não invente argumentos como time_window, hours ou window: eles não existem no schema e serão rejeitados. Consulte as tools que devolvem dado datado e registre a limitação temporal na conclusão."
+        },
+        "tools_executed": [],
+        "evidence": [],
+        "trace_event_types": [
+          "understanding_completed",
+          "planner_completed",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "terminal_state_reached"
+        ],
+        "errors": [],
+        "duration_ms": 38492.915
+      }
+    },
+    "syn_u_dev_0026": {
+      "request": {
+        "message": "Você consegue verificar se a mudança de vibração RMS em exaustor asset_S425, depois de ajuste operacional, depois da parada programada representa desvio real ou limitação dos dados.",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_05",
+          "asset_refs": [
+            "asset_S425"
+          ],
+          "role": "maintenance_analyst",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "training_tags": [
+        "investigate",
+        "medium",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "coverage": {
+        "alignment": "PARTIALLY_ALIGNED",
+        "grounded_answer_reachable": true,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API"
+        ]
+      },
+      "primary_failure_layer": "TOOL",
+      "v1": {
+        "terminal_status": "FAILED",
+        "failure_category": "UNCLASSIFIED_ERROR",
+        "request_class": "investigate",
+        "requested_actions": [],
+        "planner": {
+          "schema_valid": false,
+          "finish_reason": "MAX_TOKENS",
+          "output_tokens": 496
+        },
+        "investigator_decisions": [],
+        "temporal_policy": null,
+        "tools_executed": [],
+        "evidence": [],
+        "trace_event_types": [
+          "understanding_completed",
+          "terminal_state_reached"
+        ],
+        "errors": [
+          {
+            "code": "PLANNER_ERROR",
+            "subcategory": "LLMOutputValidationError",
+            "primary_layer": "PROMPT",
+            "detail_sanitized": "Planner não produziu PlannerOutput válido."
+          }
+        ],
+        "duration_ms": 6245.506
+      },
+      "v2": {
+        "terminal_status": "SAFE_ESCALATION",
+        "failure_category": null,
+        "request_class": "investigate",
+        "requested_actions": [],
+        "planner": {
+          "schema_valid": true,
+          "finish_reason": "STOP",
+          "output_tokens": 468
+        },
+        "investigator_decisions": [
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "MISSING_ASSET_CONTEXT"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "get_asset_context",
+            "arguments": {
+              "asset_id": "asset_S425"
+            }
+          },
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "RETRIEVE_ASSET_BASELINE"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "get_asset_baseline",
+            "arguments": {
+              "asset_id": "asset_S425",
+              "point_id": "pt_S425_de"
+            }
+          },
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "RETRIEVE_ASSET_RMS"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "get_asset_rms",
+            "arguments": {
+              "asset_id": "asset_S425",
+              "point_id": "pt_S425_de"
+            }
+          },
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "RETRIEVE_SPECTRUM_EVIDENCE"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "get_asset_spectrum",
+            "arguments": {
+              "asset_id": "asset_S425",
+              "point_id": "pt_S425_de"
+            }
+          },
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "DATA_QUALITY_CHECK_NEEDED"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "get_asset_data_quality",
+            "arguments": {
+              "asset_id": "asset_S425",
+              "point_id": "pt_S425_de"
+            }
+          },
+          {
+            "type": "escalate",
+            "reason_codes": [
+              "UNAVAILABLE_EVIDENCE",
+              "INCONCLUSIVE_EVIDENCE"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "SAFE_ESCALATION_ACCEPTED",
+            "tool": null,
+            "arguments": null
+          }
+        ],
+        "temporal_policy": {
+          "temporal_request_detected": true,
+          "relative_reference_detected": true,
+          "filterable_tools": [],
+          "timestamped_tools": [
+            "list_asset_analyses",
+            "get_analysis_details",
+            "get_asset_rms",
+            "get_asset_data_quality",
+            "get_model_capabilities"
+          ],
+          "reason_code": "TEMPORAL_FILTER_UNSUPPORTED",
+          "handling": "PROCEED_WITHOUT_FILTER",
+          "guidance": "Nenhuma tool aceita recorte temporal. Não invente argumentos como time_window, hours ou window: eles não existem no schema e serão rejeitados. Consulte as tools que devolvem dado datado e registre a limitação temporal na conclusão."
+        },
+        "tools_executed": [
+          "get_asset_context",
+          "get_asset_baseline",
+          "get_asset_rms",
+          "get_asset_spectrum",
+          "get_asset_data_quality"
+        ],
+        "evidence": [
+          {
+            "evidence_id": "trace_syn_u_dev_0026:evidence:000001",
+            "tool_name": "get_asset_context",
+            "evidence_status": "complete",
+            "source_call_id": "trace_syn_u_dev_0026:call:000001"
+          },
+          {
+            "evidence_id": "trace_syn_u_dev_0026:evidence:000002",
+            "tool_name": "get_asset_baseline",
+            "evidence_status": "partial",
+            "source_call_id": "trace_syn_u_dev_0026:call:000002"
+          },
+          {
+            "evidence_id": "trace_syn_u_dev_0026:evidence:000003",
+            "tool_name": "get_asset_rms",
+            "evidence_status": "partial",
+            "source_call_id": "trace_syn_u_dev_0026:call:000003"
+          },
+          {
+            "evidence_id": "trace_syn_u_dev_0026:evidence:000004",
+            "tool_name": "get_asset_spectrum",
+            "evidence_status": "unavailable",
+            "source_call_id": "trace_syn_u_dev_0026:call:000004"
+          },
+          {
+            "evidence_id": "trace_syn_u_dev_0026:evidence:000005",
+            "tool_name": "get_asset_data_quality",
+            "evidence_status": "complete",
+            "source_call_id": "trace_syn_u_dev_0026:call:000005"
+          }
+        ],
+        "trace_event_types": [
+          "understanding_completed",
+          "planner_completed",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "terminal_state_reached"
+        ],
+        "errors": [],
+        "duration_ms": 125813.745
+      }
+    },
+    "syn_u_dev_0004": {
+      "request": {
+        "message": "Quero uma avaliação objetiva de o que significa espectro axial para refiner asset_B211 durante a aceleração e qual fonte técnica deve orientar a interpretação nas últimas seis horas?",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_04",
+          "asset_refs": [
+            "asset_B211"
+          ],
+          "role": "operator",
+          "permissions": [
+            "read"
+          ]
+        }
+      },
+      "training_tags": [
+        "contextualize",
+        "easy",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "coverage": {
+        "alignment": "PARTIALLY_ALIGNED",
+        "grounded_answer_reachable": false,
+        "temporal_context_requested": true,
+        "warnings": [
+          "DATA_COVERAGE_WARNING",
+          "TEMPORAL_CONTEXT_NOT_REPRESENTED_IN_API",
+          "GROUNDED_ANSWER_NOT_REACHABLE_FROM_ASSET_RECORD"
+        ]
+      },
+      "primary_failure_layer": "PROVIDER",
+      "v1": {
+        "terminal_status": "SAFE_ESCALATION",
+        "failure_category": null,
+        "request_class": "contextualize",
+        "requested_actions": [],
+        "planner": {
+          "schema_valid": true,
+          "finish_reason": "STOP",
+          "output_tokens": 337
+        },
+        "investigator_decisions": [
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "INFORMATIONAL_INTENT",
+              "READ_ONLY_INVESTIGATION"
+            ],
+            "first_pass_valid": false,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "get_asset_spectrum",
+            "arguments": {
+              "asset_id": "asset_B211"
+            }
+          },
+          {
+            "type": "escalate",
+            "reason_codes": [
+              "EVIDENCE_CONFLICT",
+              "INCONCLUSIVE_SPECTRUM_DATA"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "SAFE_ESCALATION_ACCEPTED",
+            "tool": null,
+            "arguments": null
+          }
+        ],
+        "temporal_policy": null,
+        "tools_executed": [
+          "get_asset_spectrum"
+        ],
+        "evidence": [
+          {
+            "evidence_id": "trace_syn_u_dev_0004:evidence:000001",
+            "tool_name": "get_asset_spectrum",
+            "evidence_status": "conflict",
+            "source_call_id": "trace_syn_u_dev_0004:call:000001"
+          }
+        ],
+        "trace_event_types": [
+          "understanding_completed",
+          "planner_completed",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "terminal_state_reached"
+        ],
+        "errors": [],
+        "duration_ms": 7646.44
+      },
+      "v2": {
+        "terminal_status": "FAILED",
+        "failure_category": "UNCLASSIFIED_ERROR",
+        "request_class": "contextualize",
+        "requested_actions": [],
+        "planner": {
+          "schema_valid": null,
+          "finish_reason": null,
+          "output_tokens": null
+        },
+        "investigator_decisions": [],
+        "temporal_policy": null,
+        "tools_executed": [],
+        "evidence": [],
+        "trace_event_types": [
+          "understanding_completed",
+          "terminal_state_reached"
+        ],
+        "errors": [
+          {
+            "code": "PROVIDER_ERROR",
+            "subcategory": "http_status",
+            "primary_layer": "PROVIDER",
+            "detail_sanitized": "planner: Provider limitou ou falhou temporariamente."
+          }
+        ],
+        "duration_ms": 31022.856
+      }
+    },
+    "syn_u_dev_0036": {
+      "request": {
+        "message": "Você consegue verificar a situação de transportador asset_X216 durante a desaceleração. Se houver evidência suficiente, quero registrar uma escalação humana; não execute nada sem a política apropriada.",
+        "available_context": {
+          "tenant_ref": "tenant_syn_dev_01",
+          "asset_refs": [
+            "asset_X216"
+          ],
+          "role": "reliability_engineer",
+          "permissions": [
+            "read",
+            "request_action"
+          ]
+        }
+      },
+      "training_tags": [
+        "execute_or_handoff_recognition",
+        "medium",
+        "single_asset",
+        "fully_scoped"
+      ],
+      "coverage": {
+        "alignment": "PARTIALLY_ALIGNED",
+        "grounded_answer_reachable": true,
+        "temporal_context_requested": false,
+        "warnings": [
+          "DATA_COVERAGE_WARNING"
+        ]
+      },
+      "primary_failure_layer": "PROVIDER",
+      "v1": {
+        "terminal_status": "AWAITING_REQUIRED_INFORMATION",
+        "failure_category": null,
+        "request_class": "mixed",
+        "requested_actions": [
+          "request_case_escalation"
+        ],
+        "planner": {
+          "schema_valid": true,
+          "finish_reason": "STOP",
+          "output_tokens": 380
+        },
+        "investigator_decisions": [
+          {
+            "type": "ask_user",
+            "reason_codes": [
+              "MISSING_TIME_WINDOW"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "EXTERNAL_INFORMATION_REQUIRED",
+            "tool": null,
+            "arguments": null
+          }
+        ],
+        "temporal_policy": null,
+        "tools_executed": [],
+        "evidence": [],
+        "trace_event_types": [
+          "understanding_completed",
+          "planner_completed",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "terminal_state_reached"
+        ],
+        "errors": [],
+        "duration_ms": 6085.352
+      },
+      "v2": {
+        "terminal_status": "FAILED",
+        "failure_category": "UNCLASSIFIED_ERROR",
+        "request_class": "execute",
+        "requested_actions": [
+          "request_case_escalation"
+        ],
+        "planner": {
+          "schema_valid": true,
+          "finish_reason": "STOP",
+          "output_tokens": 348
+        },
+        "investigator_decisions": [
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "MISSING_ASSET_CONTEXT"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "get_asset_context",
+            "arguments": {
+              "asset_id": "asset_X216"
+            }
+          },
+          {
+            "type": "tool_call",
+            "reason_codes": [
+              "LIST_ASSET_ANALYSES_REQUIRED"
+            ],
+            "first_pass_valid": true,
+            "policy_reason": "USEFUL_READ_TOOL_ALLOWED",
+            "tool": "list_asset_analyses",
+            "arguments": {
+              "asset_id": "asset_X216"
+            }
+          }
+        ],
+        "temporal_policy": {
+          "temporal_request_detected": false,
+          "relative_reference_detected": false,
+          "filterable_tools": [],
+          "timestamped_tools": [
+            "list_asset_analyses",
+            "get_analysis_details",
+            "get_asset_rms",
+            "get_asset_data_quality",
+            "get_model_capabilities"
+          ],
+          "reason_code": "NO_TEMPORAL_REQUEST",
+          "handling": "PROCEED_WITHOUT_FILTER",
+          "guidance": "Nenhum recorte temporal foi pedido."
+        },
+        "tools_executed": [
+          "get_asset_context",
+          "list_asset_analyses"
+        ],
+        "evidence": [
+          {
+            "evidence_id": "trace_syn_u_dev_0036:evidence:000001",
+            "tool_name": "get_asset_context",
+            "evidence_status": "complete",
+            "source_call_id": "trace_syn_u_dev_0036:call:000001"
+          },
+          {
+            "evidence_id": "trace_syn_u_dev_0036:evidence:000002",
+            "tool_name": "list_asset_analyses",
+            "evidence_status": "unavailable",
+            "source_call_id": "trace_syn_u_dev_0036:call:000002"
+          }
+        ],
+        "trace_event_types": [
+          "understanding_completed",
+          "planner_completed",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "llm_decision_produced",
+          "decision_validated",
+          "decision_accepted",
+          "tool_requested",
+          "tool_started",
+          "tool_completed",
+          "evidence_created",
+          "terminal_state_reached"
+        ],
+        "errors": [
+          {
+            "code": "PROVIDER_ERROR",
+            "subcategory": "http_status",
+            "primary_layer": "PROVIDER",
+            "detail_sanitized": "investigator: Provider limitou ou falhou temporariamente."
+          }
+        ],
+        "duration_ms": 77289.684
+      }
+    }
+  },
+  "evidence_from_earlier_stages": {
+    "planner_token_repair": {
+      "verification": "planner_output_token_ceiling_repair",
+      "provider_ceiling_v1": 512,
+      "provider_ceiling_v2": 8192,
+      "role_budget": 1200,
+      "cases_truncated_in_v1": 4,
+      "cases_valid_after_repair": 4,
+      "exceeded_old_ceiling": [
+        "syn_u_dev_0026",
+        "syn_u_dev_0051"
+      ],
+      "results": [
+        {
+          "sample_id": "syn_u_dev_0025",
+          "v1": {
+            "finish_reason": "MAX_TOKENS",
+            "output_tokens": 498,
+            "schema_valid": false,
+            "effective_output_ceiling": 512
+          },
+          "v2": {
+            "finish_reason": "STOP",
+            "output_tokens": 285,
+            "schema_valid": true,
+            "status": "success",
+            "error": null,
+            "effective_output_ceiling": 1200
+          }
+        },
+        {
+          "sample_id": "syn_u_dev_0026",
+          "v1": {
+            "finish_reason": "MAX_TOKENS",
+            "output_tokens": 496,
+            "schema_valid": false,
+            "effective_output_ceiling": 512
+          },
+          "v2": {
+            "finish_reason": "STOP",
+            "output_tokens": 618,
+            "schema_valid": true,
+            "status": "success",
+            "error": null,
+            "effective_output_ceiling": 1200
+          }
+        },
+        {
+          "sample_id": "syn_u_dev_0034",
+          "v1": {
+            "finish_reason": "MAX_TOKENS",
+            "output_tokens": 495,
+            "schema_valid": false,
+            "effective_output_ceiling": 512
+          },
+          "v2": {
+            "finish_reason": "STOP",
+            "output_tokens": 481,
+            "schema_valid": true,
+            "status": "success",
+            "error": null,
+            "effective_output_ceiling": 1200
+          }
+        },
+        {
+          "sample_id": "syn_u_dev_0051",
+          "v1": {
+            "finish_reason": "MAX_TOKENS",
+            "output_tokens": 495,
+            "schema_valid": false,
+            "effective_output_ceiling": 512
+          },
+          "v2": {
+            "finish_reason": "STOP",
+            "output_tokens": 531,
+            "schema_valid": true,
+            "status": "success",
+            "error": null,
+            "effective_output_ceiling": 1200
+          }
+        }
+      ]
+    },
+    "understanding_calibration_v1_v2": {
+      "v1": {
+        "contextualize": {
+          "support": 15,
+          "predicted": 14,
+          "hits": 14,
+          "recall": 0.9333,
+          "precision": 1.0
+        },
+        "investigate": {
+          "support": 25,
+          "predicted": 30,
+          "hits": 25,
+          "recall": 1.0,
+          "precision": 0.8333
+        },
+        "execute": {
+          "support": 13,
+          "predicted": 0,
+          "hits": 0,
+          "recall": 0.0,
+          "precision": null
+        },
+        "mixed": {
+          "support": 4,
+          "predicted": 15,
+          "hits": 0,
+          "recall": 0.0,
+          "precision": 0.0
+        },
+        "unclear": {
+          "support": 3,
+          "predicted": 0,
+          "hits": 0,
+          "recall": 0.0,
+          "precision": null
+        }
+      },
+      "v2": {
+        "contextualize": {
+          "support": 15,
+          "predicted": 9,
+          "hits": 9,
+          "recall": 0.6,
+          "precision": 1.0
+        },
+        "investigate": {
+          "support": 25,
+          "predicted": 12,
+          "hits": 12,
+          "recall": 0.48,
+          "precision": 1.0
+        },
+        "execute": {
+          "support": 13,
+          "predicted": 5,
+          "hits": 5,
+          "recall": 0.3846,
+          "precision": 1.0
+        },
+        "mixed": {
+          "support": 4,
+          "predicted": 1,
+          "hits": 0,
+          "recall": 0.0,
+          "precision": 0.0
+        },
+        "unclear": {
+          "support": 3,
+          "predicted": 3,
+          "hits": 2,
+          "recall": 0.6667,
+          "precision": 0.6667
+        }
+      }
+    }
+  }
+}

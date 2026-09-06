@@ -6,6 +6,8 @@ Não há SDK, fallback ou chamada no import. Chaves nunca entram nos contratos.
 from __future__ import annotations
 
 import os
+import time
+from collections.abc import Callable
 from enum import Enum
 from time import perf_counter
 from typing import Any
@@ -23,8 +25,24 @@ class ProviderName(str, Enum):
 
 
 class RetryPolicy(BaseModel):
+    """Tentativas e espera entre elas.
+
+    Um HTTP 503 significa "sobrecarregado": repetir no mesmo instante gasta a
+    tentativa contra a condição que acabou de falhar. O backoff existe para que
+    a segunda tentativa encontre um estado diferente do provider.
+    """
+
     model_config = ConfigDict(extra="forbid", frozen=True)
     max_attempts: int = Field(default=1, ge=1, le=3)
+    backoff_seconds: float = Field(default=0.0, ge=0.0, le=30.0)
+    backoff_multiplier: float = Field(default=2.0, ge=1.0, le=4.0)
+
+    def delay_before(self, next_attempt: int) -> float:
+        """Espera antes da tentativa `next_attempt` (2 é a primeira repetição)."""
+
+        if self.backoff_seconds <= 0 or next_attempt < 2:
+            return 0.0
+        return round(self.backoff_seconds * (self.backoff_multiplier ** (next_attempt - 2)), 3)
 
 
 class ProviderCapabilities(BaseModel):
@@ -58,16 +76,30 @@ def default_provider_configs() -> dict[ProviderName, ProviderConfig]:
     cerebras_model = os.getenv("CEREBRAS_MODEL") or os.getenv("CEREBRAS_REPORTER_MODEL")
     return {
         ProviderName.GROQ: ProviderConfig(provider=ProviderName.GROQ, base_url="https://api.groq.com/openai/v1", credential_env="GROQ_API_KEY", model=groq_model, max_output_tokens=2048, enabled=bool(groq_model), capabilities=ProviderCapabilities(structured_output=None, tool_calling=True, usage_reporting=True, streaming=True, model_listing=True)),
-        ProviderName.GEMINI: ProviderConfig(provider=ProviderName.GEMINI, base_url="https://generativelanguage.googleapis.com/v1beta", credential_env="GEMINI_API_KEY", model=gemini_model, timeout_seconds=45, max_output_tokens=8192, retry=RetryPolicy(max_attempts=2), enabled=bool(gemini_model), capabilities=ProviderCapabilities(structured_output=True, tool_calling=True, usage_reporting=True, streaming=True, model_listing=True)),
+        ProviderName.GEMINI: ProviderConfig(provider=ProviderName.GEMINI, base_url="https://generativelanguage.googleapis.com/v1beta", credential_env="GEMINI_API_KEY", model=gemini_model, timeout_seconds=45, max_output_tokens=8192, retry=RetryPolicy(max_attempts=2, backoff_seconds=2.0), enabled=bool(gemini_model), capabilities=ProviderCapabilities(structured_output=True, tool_calling=True, usage_reporting=True, streaming=True, model_listing=True)),
         ProviderName.CEREBRAS: ProviderConfig(provider=ProviderName.CEREBRAS, base_url="https://api.cerebras.ai/v1", credential_env="CEREBRAS_API_KEY", model=cerebras_model, enabled=bool(cerebras_model), capabilities=ProviderCapabilities(structured_output=None, tool_calling=True, usage_reporting=True, streaming=True, model_listing=True)),
     }
 
 
 class BaseHTTPProvider:
-    def __init__(self, config: ProviderConfig, *, transport: httpx.BaseTransport | None = None) -> None:
+    def __init__(
+        self,
+        config: ProviderConfig,
+        *,
+        transport: httpx.BaseTransport | None = None,
+        sleeper: Callable[[float], None] = time.sleep,
+    ) -> None:
         self.config = config
         self._http = httpx.Client(base_url=config.base_url.rstrip("/"), timeout=config.timeout_seconds, transport=transport)
         self._last_raw_response_sanitized: dict[str, Any] | None = None
+        self._sleep = sleeper
+        self.retry_delays_observed: list[float] = []
+
+    def _wait_before_retry(self, next_attempt: int) -> None:
+        delay = self.config.retry.delay_before(next_attempt)
+        self.retry_delays_observed.append(delay)
+        if delay:
+            self._sleep(delay)
 
     @property
     def last_raw_response_sanitized(self) -> dict[str, Any] | None:
@@ -87,14 +119,17 @@ class BaseHTTPProvider:
                 response = self._send(request, key)
             except httpx.TimeoutException:
                 if attempt < self.config.retry.max_attempts:
+                    self._wait_before_retry(attempt + 1)
                     continue
                 return self._failure(request, LLMErrorCode.TIMEOUT, "Timeout do provider.", True, self._duration(started), attempt)
             except httpx.RequestError:
                 if attempt < self.config.retry.max_attempts:
+                    self._wait_before_retry(attempt + 1)
                     continue
                 return self._failure(request, LLMErrorCode.NETWORK_ERROR, "Falha de conectividade do provider.", True, self._duration(started), attempt)
             if response.status_code in {429} or response.status_code >= 500:
                 if attempt < self.config.retry.max_attempts:
+                    self._wait_before_retry(attempt + 1)
                     continue
                 code = LLMErrorCode.RATE_LIMIT if response.status_code == 429 else LLMErrorCode.HTTP_STATUS
                 return self._failure(request, code, "Provider limitou ou falhou temporariamente.", True, self._duration(started), attempt, response.status_code)
@@ -243,8 +278,15 @@ class GeminiProvider(BaseHTTPProvider):
         return LLMResponse(request_id=request.request_id, response_id=str(payload.get("responseId")) if payload.get("responseId") else None, provider=self.config.provider.value, model=self.config.model or "not_configured", status=LLMResponseStatus.SUCCESS, output=content, usage=usage, duration_ms=duration, metadata=LLMMetadata(prompt_version=request.prompt_version, finish_reason=candidate.get("finishReason"), attempt_count=attempts))
 
 
-def create_provider(config: ProviderConfig, *, transport: httpx.BaseTransport | None = None) -> BaseHTTPProvider:
-    return {ProviderName.GROQ: GroqProvider, ProviderName.GEMINI: GeminiProvider, ProviderName.CEREBRAS: CerebrasProvider}[config.provider](config, transport=transport)
+def create_provider(
+    config: ProviderConfig,
+    *,
+    transport: httpx.BaseTransport | None = None,
+    sleeper: Callable[[float], None] = time.sleep,
+) -> BaseHTTPProvider:
+    return {ProviderName.GROQ: GroqProvider, ProviderName.GEMINI: GeminiProvider, ProviderName.CEREBRAS: CerebrasProvider}[
+        config.provider
+    ](config, transport=transport, sleeper=sleeper)
 
 
 def diagnostic_result(response: LLMResponse, credential_status: CredentialStatus) -> ProviderDiagnosticResult:

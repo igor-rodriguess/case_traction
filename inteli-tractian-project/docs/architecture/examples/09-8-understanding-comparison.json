@@ -1,0 +1,689 @@
+{
+  "stage": "09.8",
+  "question": "O Gemini produz UnderstandingOutput compativel o bastante para continuar sem a cota do Groq?",
+  "verdict": "GEMINI_UNDERSTANDING_APPROVED",
+  "gate_checks": {
+    "smoke_schema_valid": true,
+    "smoke_no_action_violation": true,
+    "smoke_coverage_sufficient": true,
+    "equivalence_schema_valid": true,
+    "no_action_violation": true,
+    "entities_preserved": true,
+    "no_severe_accuracy_regression": true
+  },
+  "understanding_model": "gemini-3.5-flash-lite",
+  "prompt_version": "understanding_prompt_v2",
+  "contract_smoke": {
+    "fixtures": 5,
+    "answered": 5,
+    "provider_failures": 0,
+    "provider_failure_fixtures": [],
+    "schema_valid": 5,
+    "schema_invalid": 0,
+    "schema_valid_rate_among_answered": 1.0,
+    "action_execution_violations": 0
+  },
+  "contract_smoke_fixtures": [
+    {
+      "fixture": "contextualize",
+      "status": "success",
+      "schema_valid": true,
+      "predicted_class": "contextualize",
+      "action_execution_allowed": false,
+      "latency_ms": 17606.948,
+      "usage": {
+        "input_tokens": 1957,
+        "output_tokens": 339,
+        "total_tokens": 2296
+      }
+    },
+    {
+      "fixture": "investigate",
+      "status": "success",
+      "schema_valid": true,
+      "predicted_class": "investigate",
+      "action_execution_allowed": false,
+      "latency_ms": 1647.612,
+      "usage": {
+        "input_tokens": 1963,
+        "output_tokens": 359,
+        "total_tokens": 2322
+      }
+    },
+    {
+      "fixture": "execute",
+      "status": "success",
+      "schema_valid": true,
+      "predicted_class": "execute",
+      "action_execution_allowed": false,
+      "latency_ms": 2192.87,
+      "usage": {
+        "input_tokens": 1967,
+        "output_tokens": 557,
+        "total_tokens": 2524
+      }
+    },
+    {
+      "fixture": "mixed",
+      "status": "success",
+      "schema_valid": true,
+      "predicted_class": "mixed",
+      "action_execution_allowed": false,
+      "latency_ms": 61055.701,
+      "usage": {
+        "input_tokens": 1961,
+        "output_tokens": 533,
+        "total_tokens": 2494
+      }
+    },
+    {
+      "fixture": "unclear",
+      "status": "success",
+      "schema_valid": true,
+      "predicted_class": "unclear",
+      "action_execution_allowed": false,
+      "latency_ms": 21293.897,
+      "usage": {
+        "input_tokens": 1951,
+        "output_tokens": 373,
+        "total_tokens": 2324
+      }
+    }
+  ],
+  "equivalence_summary": {
+    "sample_ids": [
+      "syn_u_dev_0001",
+      "syn_u_dev_0002",
+      "syn_u_dev_0003",
+      "syn_u_dev_0006",
+      "syn_u_dev_0011",
+      "syn_u_dev_0012",
+      "syn_u_dev_0013",
+      "syn_u_dev_0038",
+      "syn_u_dev_0042",
+      "syn_u_dev_0045"
+    ],
+    "classes_available_among_measured": {
+      "contextualize": 8,
+      "execute": 4,
+      "investigate": 21
+    },
+    "classes_absent_from_measured": [
+      "mixed",
+      "unclear"
+    ],
+    "cases": 10,
+    "gemini_schema_valid_rate": 1.0,
+    "class_agreement_rate": 1.0,
+    "groq_accuracy": 1.0,
+    "gemini_accuracy": 1.0,
+    "entities_preserved_rate": 1.0,
+    "action_execution_violations": 0,
+    "gemini_latency_ms_total": 116285.139,
+    "groq_latency_ms_total": 34801.293,
+    "gemini_tokens": 24909,
+    "groq_tokens": 42647,
+    "confusion_gemini": {
+      "contextualize->contextualize": 4,
+      "investigate->investigate": 3,
+      "execute->execute": 3
+    }
+  },
+  "equivalence_cases": [
+    {
+      "sample_id": "syn_u_dev_0001",
+      "target_class": "contextualize",
+      "groq": {
+        "request_class": "contextualize",
+        "schema_valid": true,
+        "latency_ms": 2961.916,
+        "usage": {
+          "input_tokens": 2919,
+          "output_tokens": 1092,
+          "total_tokens": 4011
+        },
+        "entities": [
+          "assets:asset_B211"
+        ],
+        "requested_actions": [],
+        "missing_information": [],
+        "investigation_targets": [
+          "asset context",
+          "industrial knowledge"
+        ]
+      },
+      "gemini": {
+        "request_class": "contextualize",
+        "schema_valid": true,
+        "latency_ms": 1981.444,
+        "usage": {
+          "input_tokens": 1992,
+          "output_tokens": 437,
+          "total_tokens": 2429
+        },
+        "error": null,
+        "entities": [
+          "assets:asset_B211"
+        ],
+        "requested_actions": [],
+        "missing_information": [],
+        "investigation_targets": [
+          "asset context",
+          "industrial knowledge",
+          "tendência radial"
+        ]
+      },
+      "class_agreement": true,
+      "groq_correct": true,
+      "gemini_correct": true,
+      "entities_preserved": true,
+      "action_execution_allowed": false
+    },
+    {
+      "sample_id": "syn_u_dev_0002",
+      "target_class": "contextualize",
+      "groq": {
+        "request_class": "contextualize",
+        "schema_valid": true,
+        "latency_ms": 2501.383,
+        "usage": {
+          "input_tokens": 2923,
+          "output_tokens": 1000,
+          "total_tokens": 3923
+        },
+        "entities": [
+          "assets:asset_S425"
+        ],
+        "requested_actions": [],
+        "missing_information": [],
+        "investigation_targets": [
+          "industrial knowledge",
+          "asset context"
+        ]
+      },
+      "gemini": {
+        "request_class": "contextualize",
+        "schema_valid": true,
+        "latency_ms": 15543.953,
+        "usage": {
+          "input_tokens": 1996,
+          "output_tokens": 468,
+          "total_tokens": 2464
+        },
+        "error": null,
+        "entities": [
+          "assets:asset_S425"
+        ],
+        "requested_actions": [],
+        "missing_information": [],
+        "investigation_targets": [
+          "asset context",
+          "data quality",
+          "industrial knowledge"
+        ]
+      },
+      "class_agreement": true,
+      "groq_correct": true,
+      "gemini_correct": true,
+      "entities_preserved": true,
+      "action_execution_allowed": false
+    },
+    {
+      "sample_id": "syn_u_dev_0003",
+      "target_class": "contextualize",
+      "groq": {
+        "request_class": "contextualize",
+        "schema_valid": true,
+        "latency_ms": 3149.301,
+        "usage": {
+          "input_tokens": 2923,
+          "output_tokens": 1277,
+          "total_tokens": 4200
+        },
+        "entities": [
+          "assets:asset_X216"
+        ],
+        "requested_actions": [],
+        "missing_information": [
+          "time_window"
+        ],
+        "investigation_targets": [
+          "industrial knowledge",
+          "asset context"
+        ]
+      },
+      "gemini": {
+        "request_class": "contextualize",
+        "schema_valid": true,
+        "latency_ms": 2040.222,
+        "usage": {
+          "input_tokens": 1996,
+          "output_tokens": 458,
+          "total_tokens": 2454
+        },
+        "error": null,
+        "entities": [
+          "assets:asset_X216"
+        ],
+        "requested_actions": [],
+        "missing_information": [],
+        "investigation_targets": [
+          "asset context",
+          "industrial knowledge",
+          "temperatura do mancal"
+        ]
+      },
+      "class_agreement": true,
+      "groq_correct": true,
+      "gemini_correct": true,
+      "entities_preserved": true,
+      "action_execution_allowed": false
+    },
+    {
+      "sample_id": "syn_u_dev_0006",
+      "target_class": "contextualize",
+      "groq": {
+        "request_class": "contextualize",
+        "schema_valid": true,
+        "latency_ms": 2490.845,
+        "usage": {
+          "input_tokens": 2924,
+          "output_tokens": 969,
+          "total_tokens": 3893
+        },
+        "entities": [
+          "assets:asset_X216"
+        ],
+        "requested_actions": [],
+        "missing_information": [],
+        "investigation_targets": [
+          "industrial knowledge"
+        ]
+      },
+      "gemini": {
+        "request_class": "contextualize",
+        "schema_valid": true,
+        "latency_ms": 12790.211,
+        "usage": {
+          "input_tokens": 1995,
+          "output_tokens": 419,
+          "total_tokens": 2414
+        },
+        "error": null,
+        "entities": [
+          "assets:asset_X216"
+        ],
+        "requested_actions": [],
+        "missing_information": [],
+        "investigation_targets": [
+          "industrial knowledge",
+          "asset context"
+        ]
+      },
+      "class_agreement": true,
+      "groq_correct": true,
+      "gemini_correct": true,
+      "entities_preserved": true,
+      "action_execution_allowed": false
+    },
+    {
+      "sample_id": "syn_u_dev_0011",
+      "target_class": "investigate",
+      "groq": {
+        "request_class": "investigate",
+        "schema_valid": true,
+        "latency_ms": 4022.035,
+        "usage": {
+          "input_tokens": 2926,
+          "output_tokens": 1298,
+          "total_tokens": 4224
+        },
+        "entities": [
+          "assets:asset_S425"
+        ],
+        "requested_actions": [],
+        "missing_information": [
+          "time_window"
+        ],
+        "investigation_targets": [
+          "asset context",
+          "spectrum",
+          "data quality",
+          "baseline",
+          "analysis evidence"
+        ]
+      },
+      "gemini": {
+        "request_class": "investigate",
+        "schema_valid": true,
+        "latency_ms": 1723.889,
+        "usage": {
+          "input_tokens": 1996,
+          "output_tokens": 406,
+          "total_tokens": 2402
+        },
+        "error": null,
+        "entities": [
+          "assets:asset_S425"
+        ],
+        "requested_actions": [],
+        "missing_information": [],
+        "investigation_targets": [
+          "asset context",
+          "spectrum",
+          "data quality",
+          "espectro axial"
+        ]
+      },
+      "class_agreement": true,
+      "groq_correct": true,
+      "gemini_correct": true,
+      "entities_preserved": true,
+      "action_execution_allowed": false
+    },
+    {
+      "sample_id": "syn_u_dev_0012",
+      "target_class": "investigate",
+      "groq": {
+        "request_class": "investigate",
+        "schema_valid": true,
+        "latency_ms": 3238.816,
+        "usage": {
+          "input_tokens": 2927,
+          "output_tokens": 1308,
+          "total_tokens": 4235
+        },
+        "entities": [
+          "assets:asset_X216"
+        ],
+        "requested_actions": [],
+        "missing_information": [
+          "time_window",
+          "measurement_point"
+        ],
+        "investigation_targets": [
+          "asset context",
+          "analysis evidence",
+          "RMS",
+          "data quality"
+        ]
+      },
+      "gemini": {
+        "request_class": "investigate",
+        "schema_valid": true,
+        "latency_ms": 1718.313,
+        "usage": {
+          "input_tokens": 1996,
+          "output_tokens": 425,
+          "total_tokens": 2421
+        },
+        "error": null,
+        "entities": [
+          "assets:asset_X216"
+        ],
+        "requested_actions": [],
+        "missing_information": [],
+        "investigation_targets": [
+          "asset context",
+          "RMS",
+          "data quality",
+          "industrial knowledge"
+        ]
+      },
+      "class_agreement": true,
+      "groq_correct": true,
+      "gemini_correct": true,
+      "entities_preserved": true,
+      "action_execution_allowed": false
+    },
+    {
+      "sample_id": "syn_u_dev_0013",
+      "target_class": "investigate",
+      "groq": {
+        "request_class": "investigate",
+        "schema_valid": true,
+        "latency_ms": 4436.304,
+        "usage": {
+          "input_tokens": 2927,
+          "output_tokens": 1968,
+          "total_tokens": 4895
+        },
+        "entities": [
+          "assets:asset_B211"
+        ],
+        "requested_actions": [],
+        "missing_information": [
+          "time_window",
+          "measurement_point"
+        ],
+        "investigation_targets": [
+          "asset context",
+          "analysis evidence",
+          "baseline",
+          "data quality",
+          "spectrum"
+        ]
+      },
+      "gemini": {
+        "request_class": "investigate",
+        "schema_valid": true,
+        "latency_ms": 37593.324,
+        "usage": {
+          "input_tokens": 1999,
+          "output_tokens": 512,
+          "total_tokens": 2511
+        },
+        "error": null,
+        "entities": [
+          "assets:asset_B211"
+        ],
+        "requested_actions": [],
+        "missing_information": [],
+        "investigation_targets": [
+          "ruído de banda larga",
+          "desaceleração",
+          "data quality",
+          "analysis evidence",
+          "asset context"
+        ]
+      },
+      "class_agreement": true,
+      "groq_correct": true,
+      "gemini_correct": true,
+      "entities_preserved": true,
+      "action_execution_allowed": false
+    },
+    {
+      "sample_id": "syn_u_dev_0038",
+      "target_class": "execute",
+      "groq": {
+        "request_class": "execute",
+        "schema_valid": true,
+        "latency_ms": 5184.606,
+        "usage": {
+          "input_tokens": 2934,
+          "output_tokens": 1848,
+          "total_tokens": 4782
+        },
+        "entities": [
+          "assets:asset_S425"
+        ],
+        "requested_actions": [
+          "request_specialist_analysis"
+        ],
+        "missing_information": [
+          "time_window"
+        ],
+        "investigation_targets": [
+          "asset context",
+          "analysis evidence",
+          "data quality",
+          "baseline",
+          "industrial knowledge"
+        ]
+      },
+      "gemini": {
+        "request_class": "execute",
+        "schema_valid": true,
+        "latency_ms": 12338.038,
+        "usage": {
+          "input_tokens": 2010,
+          "output_tokens": 585,
+          "total_tokens": 2595
+        },
+        "error": null,
+        "entities": [
+          "assets:asset_S425"
+        ],
+        "requested_actions": [
+          "request_specialist_analysis"
+        ],
+        "missing_information": [],
+        "investigation_targets": [
+          "asset context",
+          "analysis status",
+          "analysis evidence",
+          "baseline",
+          "RMS",
+          "spectrum",
+          "data quality"
+        ]
+      },
+      "class_agreement": true,
+      "groq_correct": true,
+      "gemini_correct": true,
+      "entities_preserved": true,
+      "action_execution_allowed": false
+    },
+    {
+      "sample_id": "syn_u_dev_0042",
+      "target_class": "execute",
+      "groq": {
+        "request_class": "execute",
+        "schema_valid": true,
+        "latency_ms": 3680.382,
+        "usage": {
+          "input_tokens": 2932,
+          "output_tokens": 1541,
+          "total_tokens": 4473
+        },
+        "entities": [
+          "assets:asset_X216"
+        ],
+        "requested_actions": [
+          "request_specialist_analysis"
+        ],
+        "missing_information": [
+          "time_window"
+        ],
+        "investigation_targets": [
+          "asset context",
+          "analysis evidence",
+          "baseline",
+          "industrial knowledge"
+        ]
+      },
+      "gemini": {
+        "request_class": "execute",
+        "schema_valid": true,
+        "latency_ms": 16010.743,
+        "usage": {
+          "input_tokens": 2004,
+          "output_tokens": 651,
+          "total_tokens": 2655
+        },
+        "error": null,
+        "entities": [
+          "assets:asset_X216"
+        ],
+        "requested_actions": [
+          "request_specialist_analysis"
+        ],
+        "missing_information": [
+          "time_window"
+        ],
+        "investigation_targets": [
+          "asset context",
+          "analysis status",
+          "analysis evidence",
+          "refiner"
+        ]
+      },
+      "class_agreement": true,
+      "groq_correct": true,
+      "gemini_correct": true,
+      "entities_preserved": true,
+      "action_execution_allowed": false
+    },
+    {
+      "sample_id": "syn_u_dev_0045",
+      "target_class": "execute",
+      "groq": {
+        "request_class": "execute",
+        "schema_valid": true,
+        "latency_ms": 3135.705,
+        "usage": {
+          "input_tokens": 2925,
+          "output_tokens": 1086,
+          "total_tokens": 4011
+        },
+        "entities": [],
+        "requested_actions": [
+          "request_analysis_reprocessing"
+        ],
+        "missing_information": [
+          "asset_id"
+        ],
+        "investigation_targets": [
+          "asset context",
+          "analysis evidence",
+          "data quality"
+        ]
+      },
+      "gemini": {
+        "request_class": "execute",
+        "schema_valid": true,
+        "latency_ms": 14545.002,
+        "usage": {
+          "input_tokens": 1989,
+          "output_tokens": 575,
+          "total_tokens": 2564
+        },
+        "error": null,
+        "entities": [],
+        "requested_actions": [
+          "request_analysis_reprocessing"
+        ],
+        "missing_information": [
+          "asset_id"
+        ],
+        "investigation_targets": [
+          "asset context",
+          "analysis status",
+          "analysis evidence",
+          "aceleração"
+        ]
+      },
+      "class_agreement": true,
+      "groq_correct": true,
+      "gemini_correct": true,
+      "entities_preserved": true,
+      "action_execution_allowed": false
+    }
+  ],
+  "cohorts": {
+    "A": {
+      "experiment": "e2e-full-dev-v2",
+      "understanding": "groq",
+      "cases": 33
+    },
+    "B": {
+      "experiment": "e2e-full-dev-v2b",
+      "understanding": "gemini",
+      "cases": 27,
+      "routing_version": "MODEL_ROUTING_V6",
+      "note": "Derivado do V5 trocando apenas o provider do Understanding."
+    },
+    "warning": "Coortes cobrem casos diferentes; nunca comparar terminalidades caso a caso entre elas."
+  }
+}

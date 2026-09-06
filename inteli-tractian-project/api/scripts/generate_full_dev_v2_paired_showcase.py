@@ -17,7 +17,7 @@ V1 = ROOT / "experiments" / "e2e-full-dev-v1" / "runs.jsonl"
 V2 = ROOT / "experiments" / "e2e-full-dev-v2" / "runs.jsonl"
 CALIBRATION = ROOT / "experiments" / "understanding-calibration-v2" / "calibration.json"
 REPAIR = ROOT / "experiments" / "e2e-full-dev-v2-smoke" / "planner-token-repair.json"
-OUTPUT = ROOT / "docs" / "architecture" / "examples" / "09-7-full-dev-v2-showcase.json"
+OUTPUT = ROOT / "docs" / "architecture" / "examples" / "09-7b-full-dev-v2-showcase.json"
 
 _TARGET_CATEGORIES = (
     "understanding_improvement",
@@ -97,6 +97,35 @@ def main() -> int:
     measured = [
         sid for sid, run in v2.items() if not any(e["code"] == "RATE_LIMIT" for e in run["errors"])
     ]
+    # §33 pede casos representativos, não o split inteiro: um por categoria
+    # observada, mantendo o primeiro que a ilustra.
+    def _categories(sid: str) -> list[str]:
+        run, prev = v2[sid], v1.get(sid)
+        found = []
+        if run["terminal_status"] == "SAFE_ESCALATION": found.append("safe_escalation")
+        if run["terminal_status"] == "AWAITING_REQUIRED_INFORMATION": found.append("awaiting_information")
+        if (run["components"].get("temporal_policy") or {}).get("reason_code", "").startswith("TEMPORAL"):
+            found.append("safe_temporal_handling")
+        if "DATA_COVERAGE_WARNING" in (run.get("coverage") or {}).get("warnings", []):
+            found.append("data_coverage_gap")
+        if run["errors"]: found.append("real_error")
+        u2 = (run["components"].get("understanding") or {}).get("output") or {}
+        u1 = ((prev or {}).get("components", {}).get("understanding") or {}).get("output") or {}
+        if u1 and u2 and u1.get("request_class") != u2.get("request_class"):
+            found.append("understanding_improvement")
+        if u2.get("request_class") == "execute": found.append("execute_classified_correctly")
+        if prev and (prev["components"].get("planner") or {}).get("finish_reason") == "MAX_TOKENS":
+            found.append("previously_truncated_planner")
+        return found
+
+    representative: dict[str, list[str]] = {}
+    for sid in measured:
+        for label in _categories(sid):
+            if label not in {lab for labs in representative.values() for lab in labs}:
+                representative.setdefault(sid, []).append(label)
+    measured = list(representative)
+    labels_by_sample = representative
+
     cases = {
         sid: {
             "request": v2[sid]["state"]["request"],

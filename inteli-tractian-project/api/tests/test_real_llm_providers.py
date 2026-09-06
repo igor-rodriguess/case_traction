@@ -242,3 +242,77 @@ def test_bad_request_reason_is_allowlisted_without_exposing_provider_body(monkey
     assert result.error.message == "Provider recusou a configuração de reasoning format."
     assert "secret" not in result.error.message
     provider.close()
+
+
+def test_retry_waits_before_repeating_a_503(monkeypatch) -> None:
+    """Etapa 09.7B: repetir na hora contra um 503 gasta a tentativa em vão."""
+
+    monkeypatch.setenv("TEST_PROVIDER_KEY", "test-only")
+    slept: list[float] = []
+    calls = 0
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(503, json={"error": {"message": "overloaded"}})
+
+    policy = RetryPolicy(max_attempts=3, backoff_seconds=2.0, backoff_multiplier=2.0)
+    provider = create_provider(
+        config(ProviderName.GEMINI).model_copy(update={"retry": policy}),
+        transport=httpx.MockTransport(handler),
+        sleeper=slept.append,
+    )
+
+    result = provider.infer(request())
+
+    assert calls == 3
+    assert slept == [2.0, 4.0], "backoff exponencial entre as tentativas"
+    assert result.error is not None and result.error.http_status == 503
+    provider.close()
+
+
+def test_a_successful_first_attempt_never_sleeps(monkeypatch) -> None:
+    monkeypatch.setenv("TEST_PROVIDER_KEY", "test-only")
+    slept: list[float] = []
+    payload = {"candidates": [{"content": {"parts": [{"text": '{"ok": true}'}]}, "finishReason": "STOP"}]}
+    provider = create_provider(
+        config(ProviderName.GEMINI),
+        transport=httpx.MockTransport(lambda _: httpx.Response(200, json=payload)),
+        sleeper=slept.append,
+    )
+
+    assert provider.infer(request()).status.value == "success"
+    assert slept == []
+    provider.close()
+
+
+def test_timeout_also_backs_off_between_attempts(monkeypatch) -> None:
+    monkeypatch.setenv("TEST_PROVIDER_KEY", "test-only")
+    slept: list[float] = []
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectTimeout("lento")
+
+    provider = create_provider(
+        config(ProviderName.GEMINI).model_copy(update={"retry": RetryPolicy(max_attempts=2, backoff_seconds=1.5)}),
+        transport=httpx.MockTransport(handler),
+        sleeper=slept.append,
+    )
+
+    assert provider.infer(request()).error.code.value == "timeout"
+    assert slept == [1.5]
+    provider.close()
+
+
+def test_backoff_disabled_by_default_keeps_previous_behaviour() -> None:
+    assert RetryPolicy(max_attempts=2).delay_before(2) == 0.0
+    assert RetryPolicy(max_attempts=2, backoff_seconds=2.0).delay_before(1) == 0.0
+
+
+def test_gemini_default_declares_a_backoff() -> None:
+    import os
+
+    os.environ.setdefault("GEMINI_UNDERSTANDING_MODEL", "gemini-3.5-flash-lite")
+    retry = default_provider_configs()[ProviderName.GEMINI].retry
+    assert retry.max_attempts == 2
+    assert retry.backoff_seconds > 0, "503 do provider exige espera antes de repetir"
