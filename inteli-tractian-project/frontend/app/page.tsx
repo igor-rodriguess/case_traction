@@ -12,10 +12,11 @@
  * traduzidos, apenas apresentados através de `lib/labels.ts`.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { investigations } from '@/lib/mock-investigations';
-import { evaluationFor } from '@/lib/mock-evaluations';
+import { ApiError, api } from '@/lib/api';
+import type { InvestigationSummary } from '@/lib/api-adapters';
+import { ConsoleProvider, reviewQueueOf, useConsole, useDossier } from '@/lib/use-console';
 import type { AppView, EvidenceRecord, Investigation, TraceEvent } from '@/lib/investigation-types';
 import type { Evaluation, FinalVerdict } from '@/lib/eval-types';
 import {
@@ -25,10 +26,8 @@ import {
   finalVerdictLabel,
   finalVerdictTone,
   formatScore,
-  handoffReason,
   recommendedActionLabel,
   requestClassLabel,
-  reviewReasonLabel,
   terminalStateHint,
   terminalStateLabel,
   toolName,
@@ -53,6 +52,14 @@ import {
   JudgeCards,
 } from '@/components/evaluation';
 
+const sections = [
+  ['solicitacao', 'Solicitação'],
+  ['trajetoria', 'Trajetória e evidências'],
+  ['conclusao', 'Conclusão'],
+  ['relatorio', 'Relatório'],
+  ['avaliacao', 'Avaliação'],
+] as const;
+
 const nav: AppView[] = ['overview', 'investigations', 'human-review', 'evaluations', 'system-health'];
 
 const verdictOrder: FinalVerdict[] = [
@@ -62,35 +69,6 @@ const verdictOrder: FinalVerdict[] = [
   'REJECTED',
 ];
 
-const evidenceStatusWord: Record<string, string> = {
-  complete: 'completas',
-  partial: 'parciais',
-  inconclusive: 'inconclusivas',
-  conflict: 'conflitantes',
-  unavailable: 'indisponíveis',
-};
-
-/**
- * Regra única da fila de revisão. O contador do menu, a coluna da lista e a
- * página derivam daqui, para que os números não possam divergir.
- */
-function reviewQueue(): Investigation[] {
-  return investigations.filter((item) => {
-    const evaluation = evaluationFor(item.case_id);
-    return (
-      Boolean(item.human_handoff) ||
-      Boolean(
-        evaluation &&
-          (evaluation.decision.human_review_required ||
-            evaluation.decision.final_verdict === 'REJECTED'),
-      )
-    );
-  });
-}
-
-const needsReview = (item: Investigation): boolean =>
-  reviewQueue().some((entry) => entry.case_id === item.case_id);
-
 // --------------------------------------------------------------------------
 // Estrutura
 // --------------------------------------------------------------------------
@@ -98,14 +76,16 @@ const needsReview = (item: Investigation): boolean =>
 function Shell({
   view,
   setView,
+  queueCount,
   children,
 }: {
   view: AppView;
   setView: (view: AppView) => void;
+  queueCount: number;
   children: React.ReactNode;
 }) {
   const active = view === 'investigation-detail' ? 'investigations' : view;
-  const queue = reviewQueue().length;
+  const queue = queueCount;
 
   return (
     <div className="shell">
@@ -129,7 +109,7 @@ function Shell({
               </button>
             ))}
           </nav>
-          <p className="masthead__env">Ambiente piloto · dados simulados</p>
+          <p className="masthead__env">Ambiente piloto · dados reais</p>
         </div>
       </header>
       <main className="workspace">{children}</main>
@@ -183,342 +163,23 @@ function Section({
   );
 }
 
-// --------------------------------------------------------------------------
-// Visão geral
-// --------------------------------------------------------------------------
-
-function Overview({
-  openCase,
-  go,
-}: {
-  openCase: (item: Investigation) => void;
-  go: (view: AppView) => void;
-}) {
-  const queue = reviewQueue();
-  const concluded = investigations.filter((i) => i.terminal_state === 'GROUNDED_COMPLETION').length;
-  const waiting = investigations.filter(
-    (i) => i.terminal_state === 'AWAITING_REQUIRED_INFORMATION',
-  ).length;
-  const failed = investigations.filter((i) => i.terminal_state === 'FAILED').length;
-
-  const evaluated = investigations
-    .map((item) => evaluationFor(item.case_id))
-    .filter((entry): entry is Evaluation => Boolean(entry));
-
-  const evidenceTotals = investigations.flatMap((item) => item.evidence);
-  const statusCounts = (['complete', 'partial', 'inconclusive', 'conflict', 'unavailable'] as const)
-    .map((status) => ({
-      status,
-      count: evidenceTotals.filter((record) => record.evidence_status === status).length,
-    }))
-    .filter((entry) => entry.count > 0);
-
-  return (
-    <div className="page">
-      <PageHead
-        eyebrow="Operação · 6 de setembro de 2026"
-        title="Visão geral"
-        description="Situação atual das investigações, postura das evidências e exceções que exigem decisão humana."
-      />
-
-      <div className="figures">
-        <div className="figure">
-          <b>{investigations.length}</b>
-          <span>investigações no período</span>
-        </div>
-        <div className="figure">
-          <b>{concluded}</b>
-          <span>com conclusão fundamentada</span>
-        </div>
-        <div className="figure figure--review">
-          <b>{queue.length}</b>
-          <span>aguardando revisão técnica</span>
-          <button type="button" className="link-button" onClick={() => go('human-review')}>
-            Abrir fila
-          </button>
-        </div>
-        <div className="figure">
-          <b>{waiting}</b>
-          <span>aguardando informações</span>
-        </div>
-        <div className="figure">
-          <b>{failed}</b>
-          <span>com falha operacional</span>
-        </div>
-      </div>
-
-      <div className="split split--7-5">
-        <Section
-          n="01"
-          title="Investigações recentes"
-          hint="Selecione um caso para abrir o dossiê completo."
-        >
-          <ul className="feed">
-            {investigations.map((item) => {
-              const evaluation = evaluationFor(item.case_id);
-              return (
-                <li key={item.case_id}>
-                  <button type="button" className="feed__row" onClick={() => openCase(item)}>
-                    <span className="feed__when">{item.started_at.split('· ')[1]}</span>
-                    <span className="feed__what">
-                      <b>{item.asset_name}</b>
-                      <span>{item.request}</span>
-                    </span>
-                    <span className="feed__state">
-                      <StateMark state={item.terminal_state} />
-                      {evaluation ? (
-                        <VerdictMark verdict={evaluation.decision.final_verdict} />
-                      ) : (
-                        <span className="muted">Sem avaliação</span>
-                      )}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </Section>
-
-        <div className="stack">
-          <Section
-            n="02"
-            title="Aguardando decisão humana"
-            hint="Casos parados com evidência preservada."
-          >
-            {queue.length > 0 ? (
-              <ul className="mini-queue">
-                {queue.map((item) => {
-                  const evaluation = evaluationFor(item.case_id);
-                  const reason = evaluation?.decision.review_reasons[0];
-                  return (
-                    <li key={item.case_id}>
-                      <button type="button" onClick={() => openCase(item)}>
-                        <span className="mini-queue__head">
-                          <b className="mono">{item.case_id}</b>
-                          {evaluation && <VerdictMark verdict={evaluation.decision.final_verdict} />}
-                        </span>
-                        <span className="mini-queue__asset">{item.asset_name}</span>
-                        <span className="mini-queue__reason">
-                          {reason
-                            ? reviewReasonLabel[reason.code]
-                            : handoffReason(item.human_handoff?.reason_codes[0] ?? '')}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <p className="muted">Nenhum caso aguardando decisão humana.</p>
-            )}
-          </Section>
-
-          <Section
-            n="03"
-            title="Distribuição dos resultados"
-            hint="Vereditos da avaliação e estado semântico das evidências."
-          >
-            <ul className="dist">
-              {verdictOrder.map((verdict) => {
-                const count = evaluated.filter(
-                  (entry) => entry.decision.final_verdict === verdict,
-                ).length;
-                return (
-                  <li key={verdict}>
-                    <span
-                      className={`dist__dot dist__dot--${finalVerdictTone[verdict]}`}
-                      aria-hidden="true"
-                    />
-                    <span className="dist__name">{finalVerdictLabel[verdict]}</span>
-                    <span className="dist__bar" aria-hidden="true">
-                      <i
-                        className={`dist__fill dist__fill--${finalVerdictTone[verdict]}`}
-                        style={{ width: `${(count / Math.max(1, evaluated.length)) * 100}%` }}
-                      />
-                    </span>
-                    <b>{count}</b>
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="dist__note">
-              {plural(evidenceTotals.length, 'evidência registrada', 'evidências registradas')}:{' '}
-              {statusCounts
-                .map((entry) => `${entry.count} ${evidenceStatusWord[entry.status]}`)
-                .join(' · ')}
-              .
-            </p>
-          </Section>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// --------------------------------------------------------------------------
-// Investigações
-// --------------------------------------------------------------------------
-
-function InvestigationsPage({ openCase }: { openCase: (item: Investigation) => void }) {
-  const [query, setQuery] = useState('');
-  const [state, setState] = useState('all');
-  const [review, setReview] = useState('all');
-
-  const rows = investigations.filter((item) => {
-    const matchesState = state === 'all' || item.terminal_state === state;
-    const matchesReview = review === 'all' || (review === 'yes') === needsReview(item);
-    const matchesQuery = `${item.case_id} ${item.asset_name} ${item.company} ${item.request}`
-      .toLowerCase()
-      .includes(query.toLowerCase());
-    return matchesState && matchesReview && matchesQuery;
-  });
-
-  return (
-    <div className="page">
-      <PageHead
-        eyebrow="Bancada de investigação"
-        title="Investigações"
-        description="Estado final, qualidade das evidências e resultado da avaliação, caso a caso."
-      />
-
-      <div className="filters">
-        <label className="field field--search">
-          <span className="sr-only">Buscar investigações</span>
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar caso, ativo ou solicitação"
-          />
-        </label>
-        <label className="field">
-          <span>Estado</span>
-          <select value={state} onChange={(event) => setState(event.target.value)}>
-            <option value="all">Todos</option>
-            <option value="GROUNDED_COMPLETION">Conclusão fundamentada</option>
-            <option value="SAFE_ESCALATION">Encaminhado para revisão</option>
-            <option value="AWAITING_REQUIRED_INFORMATION">Aguardando informações</option>
-            <option value="FAILED">Falhou</option>
-          </select>
-        </label>
-        <label className="field">
-          <span>Revisão humana</span>
-          <select value={review} onChange={(event) => setReview(event.target.value)}>
-            <option value="all">Todas</option>
-            <option value="yes">Necessária</option>
-            <option value="no">Não necessária</option>
-          </select>
-        </label>
-        <p className="filters__count">{plural(rows.length, 'investigação', 'investigações')}</p>
-      </div>
-
-      <div className="table-wrap">
-        <table className="grid-table">
-          <thead>
-            <tr>
-              <th scope="col">Caso</th>
-              <th scope="col">Ativo</th>
-              <th scope="col">Solicitação</th>
-              <th scope="col">Estado da investigação</th>
-              <th scope="col">Evidências</th>
-              <th scope="col">Avaliação</th>
-              <th scope="col">Revisão</th>
-              <th scope="col" className="num">
-                Duração
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((item) => {
-              const evaluation = evaluationFor(item.case_id);
-              return (
-                <tr
-                  key={item.case_id}
-                  className="grid-table__row--clickable"
-                  tabIndex={0}
-                  onClick={() => openCase(item)}
-                  onKeyDown={(event) => event.key === 'Enter' && openCase(item)}
-                >
-                  <th scope="row">
-                    <span className="cell-strong mono">{item.case_id}</span>
-                    <span className="cell-weak">{item.company}</span>
-                  </th>
-                  <td>
-                    <span className="cell-strong">{item.asset_name}</span>
-                    <span className="cell-weak mono">{item.asset_id}</span>
-                  </td>
-                  <td className="cell-prose">{item.request}</td>
-                  <td>
-                    <StateMark state={item.terminal_state} />
-                  </td>
-                  <td>
-                    <QualityMark quality={item.evidence_quality} />
-                    <span className="cell-weak">
-                      {plural(item.evidence.length, 'registro', 'registros')}
-                    </span>
-                  </td>
-                  <td>
-                    {evaluation ? (
-                      <>
-                        <VerdictMark verdict={evaluation.decision.final_verdict} />
-                        <span className="cell-weak">
-                          {formatScore(evaluation.decision.overall_score)} de 4
-                        </span>
-                      </>
-                    ) : (
-                      <span className="muted">Não avaliada</span>
-                    )}
-                  </td>
-                  <td>
-                    {needsReview(item) ? (
-                      <span className="pill pill--review">Necessária</span>
-                    ) : (
-                      <span className="cell-muted">—</span>
-                    )}
-                  </td>
-                  <td className="num">{item.duration}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {rows.length === 0 && (
-        <div className="notice">
-          <p className="notice__title">Nenhuma investigação corresponde à busca</p>
-          <p>Ajuste o texto buscado ou os filtros de estado e revisão.</p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// --------------------------------------------------------------------------
-// Dossiê da investigação
-// --------------------------------------------------------------------------
-
-const sections = [
-  ['solicitacao', 'Solicitação'],
-  ['trajetoria', 'Trajetória e evidências'],
-  ['conclusao', 'Conclusão'],
-  ['relatorio', 'Relatório'],
-  ['avaliacao', 'Avaliação'],
-] as const;
-
 function Dossier({
   item,
+  evaluation,
+  running,
   back,
   onEvidence,
   onTrace,
   openReview,
 }: {
   item: Investigation;
+  evaluation?: Evaluation;
+  running: boolean;
   back: () => void;
   onEvidence: (record: EvidenceRecord) => void;
   onTrace: (event: TraceEvent) => void;
   openReview: () => void;
 }) {
-  const evaluation = evaluationFor(item.case_id);
   const [baremaOpen, setBaremaOpen] = useState(false);
   const [linked, setLinked] = useState<string | null>(null);
 
@@ -541,7 +202,7 @@ function Dossier({
             <p className="case__meta">
               <span className="mono">{item.case_id}</span>
               <span>{item.started_at}</span>
-              <span className="tag">dados simulados</span>
+              {running && <span className="tag tag--live">em execução</span>}
             </p>
             <h1>{item.asset_name}</h1>
             <p className="case__sub">
@@ -583,11 +244,17 @@ function Dossier({
             title="Plano de investigação"
             hint="Objetivos definidos antes de qualquer consulta, e as capacidades de leitura autorizadas."
           >
-            <ol className="objectives">
-              {item.plan_objectives.map((text) => (
-                <li key={text}>{text}</li>
-              ))}
-            </ol>
+            {item.plan_objectives.length > 0 ? (
+              <ol className="objectives">
+                {item.plan_objectives.map((text) => (
+                  <li key={text}>{text}</li>
+                ))}
+              </ol>
+            ) : (
+              <p className="pending">
+                {running ? 'Em preparação…' : 'Nenhum plano foi produzido.'}
+              </p>
+            )}
             <div className="caps">
               <p className="label">Capacidades autorizadas</p>
               <ul>
@@ -864,18 +531,482 @@ function Dossier({
   );
 }
 
+
+// --------------------------------------------------------------------------
+// Estados de carga e de falha
+// --------------------------------------------------------------------------
+
+/**
+ * §40: quando a API cai, a interface diz que caiu. Não existe queda para mock —
+ * dado falso esconderia a falha real justamente no momento em que ela importa.
+ */
+function ServiceDown({ error, retry }: { error: ApiError; retry: () => void }) {
+  return (
+    <div className="page">
+      <div className="notice notice--danger">
+        <p className="notice__title">Não foi possível conectar ao serviço de investigação.</p>
+        <p>{error.message}</p>
+        <dl className="notice__facts">
+          <div>
+            <dt>Código</dt>
+            <dd className="mono">{error.code}</dd>
+          </div>
+          {error.detail && (
+            <div>
+              <dt>Detalhe</dt>
+              <dd>{error.detail}</dd>
+            </div>
+          )}
+        </dl>
+        <button type="button" className="button button--primary" onClick={retry}>
+          Tentar novamente
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Loading({ label }: { label: string }) {
+  return (
+    <div className="page">
+      <p className="pending">{label}</p>
+    </div>
+  );
+}
+
+// --------------------------------------------------------------------------
+// Nova investigação
+// --------------------------------------------------------------------------
+
+function NewInvestigationForm({
+  close,
+  onCreated,
+}: {
+  close: () => void;
+  onCreated: (caseId: string) => void;
+}) {
+  const [message, setMessage] = useState('');
+  const [asset, setAsset] = useState('');
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(event: { preventDefault: () => void }) {
+    event.preventDefault();
+    setSending(true);
+    setError(null);
+    try {
+      const created = await api.create({
+        message,
+        tenant_ref: 'company_alpha',
+        asset_refs: asset ? [asset] : [],
+      });
+      onCreated(created.case_id);
+    } catch (exc) {
+      setError(exc instanceof ApiError ? exc.message : 'Não foi possível iniciar a investigação.');
+      setSending(false);
+    }
+  }
+
+  return (
+    <dialog className="modal" open aria-labelledby="new-title">
+      <form className="modal__panel" onSubmit={submit}>
+        <header>
+          <p className="label">Nova investigação</p>
+          <h2 id="new-title">Descreva a dúvida técnica</h2>
+          <p className="modal__hint">
+            O texto vai para o agente exatamente como escrito. Ele decide o que consultar; nenhuma
+            ação de escrita é possível.
+          </p>
+        </header>
+
+        <label className="modal__field">
+          <span>Dúvida técnica</span>
+          <textarea
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+            rows={5}
+            minLength={8}
+            required
+            placeholder="Ex.: o RMS do ativo asset_C710 subiu nas últimas leituras e nenhum insight foi emitido."
+          />
+        </label>
+
+        <label className="modal__field">
+          <span>Ativo (opcional)</span>
+          <input
+            value={asset}
+            onChange={(event) => setAsset(event.target.value)}
+            placeholder="asset_C710"
+          />
+        </label>
+
+        {error && <p className="modal__error">{error}</p>}
+
+        <footer>
+          <button type="button" className="button" onClick={close} disabled={sending}>
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="button button--primary"
+            disabled={sending || message.trim().length < 8}
+          >
+            {sending ? 'Iniciando…' : 'Iniciar investigação'}
+          </button>
+        </footer>
+      </form>
+    </dialog>
+  );
+}
+
+// --------------------------------------------------------------------------
+// Visão geral
+// --------------------------------------------------------------------------
+
+function Overview({
+  summaries,
+  openCase,
+  go,
+  onNew,
+}: {
+  summaries: InvestigationSummary[];
+  openCase: (caseId: string) => void;
+  go: (view: AppView) => void;
+  onNew: () => void;
+}) {
+  const queue = reviewQueueOf(summaries);
+  const concluded = summaries.filter((i) => i.terminal_state === 'GROUNDED_COMPLETION').length;
+  const waiting = summaries.filter(
+    (i) => i.terminal_state === 'AWAITING_REQUIRED_INFORMATION',
+  ).length;
+  const failed = summaries.filter((i) => i.terminal_state === 'FAILED').length;
+  const evaluated = summaries.filter((i) => i.final_verdict);
+
+  return (
+    <div className="page">
+      <div className="page-head-row">
+        <PageHead
+          eyebrow="Operação"
+          title="Visão geral"
+          description="Situação atual das investigações, postura das evidências e exceções que exigem decisão humana."
+        />
+        <button type="button" className="button button--primary" onClick={onNew}>
+          Nova investigação
+        </button>
+      </div>
+
+      <div className="figures">
+        <div className="figure">
+          <b>{summaries.length}</b>
+          <span>investigações registradas</span>
+        </div>
+        <div className="figure">
+          <b>{concluded}</b>
+          <span>com conclusão fundamentada</span>
+        </div>
+        <div className="figure figure--review">
+          <b>{queue.length}</b>
+          <span>aguardando revisão técnica</span>
+          <button type="button" className="link-button" onClick={() => go('human-review')}>
+            Abrir fila
+          </button>
+        </div>
+        <div className="figure">
+          <b>{waiting}</b>
+          <span>aguardando informações</span>
+        </div>
+        <div className="figure">
+          <b>{failed}</b>
+          <span>com falha operacional</span>
+        </div>
+      </div>
+
+      <div className="split split--7-5">
+        <Section
+          n="01"
+          title="Investigações recentes"
+          hint="Selecione um caso para abrir o dossiê completo."
+        >
+          {summaries.length === 0 ? (
+            <p className="pending">
+              Nenhuma investigação registrada ainda. Comece por “Nova investigação”.
+            </p>
+          ) : (
+            <ul className="feed">
+              {summaries.map((item) => (
+                <li key={item.case_id}>
+                  <button
+                    type="button"
+                    className="feed__row"
+                    onClick={() => openCase(item.case_id)}
+                  >
+                    <span className="feed__when">{item.started_at.split('· ')[1] ?? ''}</span>
+                    <span className="feed__what">
+                      <b>{item.asset_name}</b>
+                      <span>{item.request}</span>
+                    </span>
+                    <span className="feed__state">
+                      {item.terminal_state ? (
+                        <StateMark state={item.terminal_state} />
+                      ) : (
+                        <span className="running-mark">
+                          <i aria-hidden="true" />
+                          Em execução
+                        </span>
+                      )}
+                      {item.final_verdict ? (
+                        <VerdictMark verdict={item.final_verdict} />
+                      ) : (
+                        <span className="muted">Sem avaliação</span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+
+        <div className="stack">
+          <Section
+            n="02"
+            title="Aguardando decisão humana"
+            hint="Casos parados com evidência preservada."
+          >
+            {queue.length > 0 ? (
+              <ul className="mini-queue">
+                {queue.map((item) => (
+                  <li key={item.case_id}>
+                    <button type="button" onClick={() => openCase(item.case_id)}>
+                      <span className="mini-queue__head">
+                        <b className="mono">{item.case_id}</b>
+                        {item.final_verdict && <VerdictMark verdict={item.final_verdict} />}
+                      </span>
+                      <span className="mini-queue__asset">{item.asset_name}</span>
+                      <span className="mini-queue__reason">
+                        {item.recommended_action
+                          ? recommendedActionLabel[
+                              item.recommended_action as keyof typeof recommendedActionLabel
+                            ]
+                          : 'Encaminhado para decisão humana'}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted">Nenhum caso aguardando decisão humana.</p>
+            )}
+          </Section>
+
+          <Section
+            n="03"
+            title="Distribuição dos resultados"
+            hint="Vereditos registrados pela avaliação."
+          >
+            <ul className="dist">
+              {verdictOrder.map((verdict) => {
+                const count = evaluated.filter((entry) => entry.final_verdict === verdict).length;
+                return (
+                  <li key={verdict}>
+                    <span
+                      className={`dist__dot dist__dot--${finalVerdictTone[verdict]}`}
+                      aria-hidden="true"
+                    />
+                    <span className="dist__name">{finalVerdictLabel[verdict]}</span>
+                    <span className="dist__bar" aria-hidden="true">
+                      <i
+                        className={`dist__fill dist__fill--${finalVerdictTone[verdict]}`}
+                        style={{ width: `${(count / Math.max(1, evaluated.length)) * 100}%` }}
+                      />
+                    </span>
+                    <b>{count}</b>
+                  </li>
+                );
+              })}
+            </ul>
+            <p className="dist__note">
+              {plural(
+                summaries.reduce((total, row) => total + row.evidence_count, 0),
+                'evidência registrada',
+                'evidências registradas',
+              )}{' '}
+              no total das execuções.
+            </p>
+          </Section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --------------------------------------------------------------------------
+// Investigações
+// --------------------------------------------------------------------------
+
+function InvestigationsPage({
+  summaries,
+  openCase,
+  onNew,
+}: {
+  summaries: InvestigationSummary[];
+  openCase: (caseId: string) => void;
+  onNew: () => void;
+}) {
+  const [query, setQuery] = useState('');
+  const [state, setState] = useState('all');
+  const [review, setReview] = useState('all');
+
+  const rows = summaries.filter((item) => {
+    const matchesState = state === 'all' || item.terminal_state === state;
+    const matchesReview = review === 'all' || (review === 'yes') === item.human_review_required;
+    const matchesQuery = `${item.case_id} ${item.asset_name} ${item.company} ${item.request}`
+      .toLowerCase()
+      .includes(query.toLowerCase());
+    return matchesState && matchesReview && matchesQuery;
+  });
+
+  return (
+    <div className="page">
+      <div className="page-head-row">
+        <PageHead
+          eyebrow="Bancada de investigação"
+          title="Investigações"
+          description="Estado final, qualidade das evidências e resultado da avaliação, caso a caso."
+        />
+        <button type="button" className="button button--primary" onClick={onNew}>
+          Nova investigação
+        </button>
+      </div>
+
+      <div className="filters">
+        <label className="field field--search">
+          <span className="sr-only">Buscar investigações</span>
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar caso, ativo ou solicitação"
+          />
+        </label>
+        <label className="field">
+          <span>Estado</span>
+          <select value={state} onChange={(event) => setState(event.target.value)}>
+            <option value="all">Todos</option>
+            <option value="GROUNDED_COMPLETION">Conclusão fundamentada</option>
+            <option value="SAFE_ESCALATION">Encaminhado para revisão</option>
+            <option value="AWAITING_REQUIRED_INFORMATION">Aguardando informações</option>
+            <option value="FAILED">Falhou</option>
+          </select>
+        </label>
+        <label className="field">
+          <span>Revisão humana</span>
+          <select value={review} onChange={(event) => setReview(event.target.value)}>
+            <option value="all">Todas</option>
+            <option value="yes">Necessária</option>
+            <option value="no">Não necessária</option>
+          </select>
+        </label>
+        <p className="filters__count">{plural(rows.length, 'investigação', 'investigações')}</p>
+      </div>
+
+      <div className="table-wrap">
+        <table className="grid-table">
+          <thead>
+            <tr>
+              <th scope="col">Caso</th>
+              <th scope="col">Ativo</th>
+              <th scope="col">Solicitação</th>
+              <th scope="col">Estado da investigação</th>
+              <th scope="col">Evidências</th>
+              <th scope="col">Avaliação</th>
+              <th scope="col">Revisão</th>
+              <th scope="col" className="num">
+                Duração
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((item) => (
+              <tr
+                key={item.case_id}
+                className="grid-table__row--clickable"
+                tabIndex={0}
+                onClick={() => openCase(item.case_id)}
+                onKeyDown={(event) => event.key === 'Enter' && openCase(item.case_id)}
+              >
+                <th scope="row">
+                  <span className="cell-strong mono">{item.case_id}</span>
+                  <span className="cell-weak">{item.company}</span>
+                </th>
+                <td>
+                  <span className="cell-strong">{item.asset_name}</span>
+                  <span className="cell-weak mono">{item.asset_id}</span>
+                </td>
+                <td className="cell-prose">{item.request}</td>
+                <td>
+                  {item.terminal_state ? (
+                    <StateMark state={item.terminal_state} />
+                  ) : (
+                    <span className="running-mark">
+                      <i aria-hidden="true" />
+                      Em execução
+                    </span>
+                  )}
+                </td>
+                <td>
+                  <QualityMark quality={item.evidence_quality} />
+                  <span className="cell-weak">
+                    {plural(item.evidence_count, 'registro', 'registros')}
+                  </span>
+                </td>
+                <td>
+                  {item.final_verdict ? (
+                    <>
+                      <VerdictMark verdict={item.final_verdict} />
+                      <span className="cell-weak">
+                        {item.overall_score != null ? `${formatScore(item.overall_score)} de 4` : ''}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="muted">Não avaliada</span>
+                  )}
+                </td>
+                <td>
+                  {item.human_review_required ? (
+                    <span className="pill pill--review">Necessária</span>
+                  ) : (
+                    <span className="cell-muted">—</span>
+                  )}
+                </td>
+                <td className="num">{item.duration}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {rows.length === 0 && (
+        <div className="notice">
+          <p className="notice__title">Nenhuma investigação corresponde à busca</p>
+          <p>Ajuste o texto buscado ou os filtros de estado e revisão.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // --------------------------------------------------------------------------
 // Revisão técnica
 // --------------------------------------------------------------------------
 
 function HumanReviewPage({
+  summaries,
   openCase,
-  openReview,
 }: {
-  openCase: (item: Investigation) => void;
-  openReview: (item: Investigation) => void;
+  summaries: InvestigationSummary[];
+  openCase: (caseId: string) => void;
 }) {
-  const queue = reviewQueue();
+  const queue = reviewQueueOf(summaries);
 
   return (
     <div className="page">
@@ -891,80 +1022,76 @@ function HumanReviewPage({
         preservaram suas evidências e pararam antes de afirmar o que não podiam sustentar.
       </p>
 
-      <div className="queue__head">
-        <span>Caso</span>
-        <span>Motivo da revisão</span>
-        <span>Avaliação</span>
-        <span className="sr-only">Ações</span>
-      </div>
-      <ul className="queue">
-        {queue.map((item) => {
-          const evaluation = evaluationFor(item.case_id);
-          const reason = evaluation?.decision.review_reasons[0];
-          return (
-            <li className="queue__item" key={item.case_id}>
-              <div className="queue__case">
-                <p className="mono cell-strong">{item.case_id}</p>
-                <p className="cell-weak">
-                  {item.asset_name} · {item.company}
-                </p>
-                <StateMark state={item.terminal_state} />
-              </div>
-
-              <div className="queue__why">
-                <p className="queue__reason">
-                  {reason
-                    ? reviewReasonLabel[reason.code]
-                    : handoffReason(item.human_handoff?.reason_codes[0] ?? 'UNRESOLVED_DATA_GAP')}
-                </p>
-                <p className="cell-prose">
-                  {reason?.detail ??
-                    item.unresolved_points[0] ??
-                    'A evidência disponível não sustentava uma conclusão.'}
-                </p>
-                {item.human_handoff && item.human_handoff.missing_information.length > 0 && (
-                  <p className="queue__missing">
-                    Falta: {item.human_handoff.missing_information.join(' · ')}
+      {queue.length === 0 ? (
+        <p className="pending">Nenhum caso aguardando decisão humana.</p>
+      ) : (
+        <>
+          <div className="queue__head">
+            <span>Caso</span>
+            <span>Situação</span>
+            <span>Avaliação</span>
+            <span className="sr-only">Ações</span>
+          </div>
+          <ul className="queue">
+            {queue.map((item) => (
+              <li className="queue__item" key={item.case_id}>
+                <div className="queue__case">
+                  <p className="mono cell-strong">{item.case_id}</p>
+                  <p className="cell-weak">
+                    {item.asset_name} · {item.company}
                   </p>
-                )}
-              </div>
+                  {item.terminal_state && <StateMark state={item.terminal_state} />}
+                </div>
 
-              <div className="queue__eval">
-                {evaluation ? (
-                  <>
-                    <VerdictMark verdict={evaluation.decision.final_verdict} />
-                    <p className="cell-weak">
-                      {formatScore(evaluation.decision.overall_score)} de 4 ·{' '}
-                      {recommendedActionLabel[evaluation.decision.recommended_action]}
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <span className="muted">Não avaliada</span>
-                    <p className="cell-weak">Não chegou à etapa de avaliação</p>
-                  </>
-                )}
-                <p className="cell-weak">
-                  Qualidade das evidências: <QualityMark quality={item.evidence_quality} />
-                </p>
-              </div>
+                <div className="queue__why">
+                  <p className="queue__reason">
+                    {item.final_verdict === 'REJECTED'
+                      ? 'Resultado bloqueado'
+                      : 'Revisão técnica necessária'}
+                  </p>
+                  <p className="cell-prose">{item.request}</p>
+                </div>
 
-              <div className="queue__actions">
-                <button type="button" className="button" onClick={() => openCase(item)}>
-                  Abrir investigação
-                </button>
-                <button
-                  type="button"
-                  className="button button--primary"
-                  onClick={() => openReview(item)}
-                >
-                  Ver encaminhamento
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+                <div className="queue__eval">
+                  {item.final_verdict ? (
+                    <>
+                      <VerdictMark verdict={item.final_verdict} />
+                      <p className="cell-weak">
+                        {item.overall_score != null ? `${formatScore(item.overall_score)} de 4` : ''}
+                        {item.recommended_action
+                          ? ` · ${
+                              recommendedActionLabel[
+                                item.recommended_action as keyof typeof recommendedActionLabel
+                              ]
+                            }`
+                          : ''}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <span className="muted">Não avaliada</span>
+                      <p className="cell-weak">Encaminhada pela investigação</p>
+                    </>
+                  )}
+                  <p className="cell-weak">
+                    Qualidade das evidências: <QualityMark quality={item.evidence_quality} />
+                  </p>
+                </div>
+
+                <div className="queue__actions">
+                  <button
+                    type="button"
+                    className="button button--primary"
+                    onClick={() => openCase(item.case_id)}
+                  >
+                    Abrir investigação
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <p className="footnote">
         Atribuição de responsável permanece indisponível: não existe workflow de posse no backend, e
@@ -978,14 +1105,14 @@ function HumanReviewPage({
 // Avaliações
 // --------------------------------------------------------------------------
 
-function EvaluationsPage({ openCase }: { openCase: (item: Investigation) => void }) {
-  const rows = investigations.map((item) => ({ item, evaluation: evaluationFor(item.case_id) }));
-  const evaluated = rows.filter((row) => row.evaluation);
-  const counts = evaluated.reduce<Record<string, number>>((acc, row) => {
-    const key = row.evaluation!.decision.final_verdict;
-    acc[key] = (acc[key] ?? 0) + 1;
-    return acc;
-  }, {});
+function EvaluationsPage({
+  summaries,
+  openCase,
+}: {
+  summaries: InvestigationSummary[];
+  openCase: (caseId: string) => void;
+}) {
+  const evaluated = summaries.filter((row) => row.final_verdict);
 
   return (
     <div className="page">
@@ -998,12 +1125,12 @@ function EvaluationsPage({ openCase }: { openCase: (item: Investigation) => void
       <div className="figures">
         {verdictOrder.map((verdict) => (
           <div key={verdict} className={`figure figure--${finalVerdictTone[verdict]}`}>
-            <b>{counts[verdict] ?? 0}</b>
+            <b>{evaluated.filter((row) => row.final_verdict === verdict).length}</b>
             <span>{finalVerdictLabel[verdict]}</span>
           </div>
         ))}
         <div className="figure">
-          <b>{rows.length - evaluated.length}</b>
+          <b>{summaries.length - evaluated.length}</b>
           <span>sem avaliação</span>
         </div>
       </div>
@@ -1018,58 +1145,48 @@ function EvaluationsPage({ openCase }: { openCase: (item: Investigation) => void
               <th scope="col" className="num">
                 Pontuação
               </th>
-              <th scope="col">Concordância</th>
-              <th scope="col" className="num">
-                Aval. A
-              </th>
-              <th scope="col" className="num">
-                Aval. B
-              </th>
               <th scope="col">Próximo passo</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map(({ item, evaluation }) => (
+            {summaries.map((item) => (
               <tr
                 key={item.case_id}
                 className="grid-table__row--clickable"
                 tabIndex={0}
-                onClick={() => openCase(item)}
-                onKeyDown={(event) => event.key === 'Enter' && openCase(item)}
+                onClick={() => openCase(item.case_id)}
+                onKeyDown={(event) => event.key === 'Enter' && openCase(item.case_id)}
               >
                 <th scope="row">
                   <span className="cell-strong mono">{item.case_id}</span>
                   <span className="cell-weak">{item.asset_name}</span>
                 </th>
                 <td>
-                  <StateMark state={item.terminal_state} />
+                  {item.terminal_state ? (
+                    <StateMark state={item.terminal_state} />
+                  ) : (
+                    <span className="running-mark">
+                      <i aria-hidden="true" />
+                      Em execução
+                    </span>
+                  )}
                 </td>
                 <td>
-                  {evaluation ? (
-                    <VerdictMark verdict={evaluation.decision.final_verdict} />
+                  {item.final_verdict ? (
+                    <VerdictMark verdict={item.final_verdict} />
                   ) : (
                     <span className="muted">Não avaliada</span>
                   )}
                 </td>
                 <td className="num">
-                  {evaluation ? formatScore(evaluation.decision.overall_score) : '—'}
+                  {item.overall_score != null ? formatScore(item.overall_score) : '—'}
                 </td>
                 <td>
                   <span className="cell-muted">
-                    {evaluation ? agreementLabel[evaluation.agreement.agreement_level] : '—'}
-                  </span>
-                  {evaluation?.arbitration && <span className="cell-weak">com arbitragem</span>}
-                </td>
-                <td className="num">
-                  {evaluation ? formatScore(evaluation.judge_a.overall_score) : '—'}
-                </td>
-                <td className="num">
-                  {evaluation ? formatScore(evaluation.judge_b.overall_score) : '—'}
-                </td>
-                <td>
-                  <span className="cell-muted">
-                    {evaluation
-                      ? recommendedActionLabel[evaluation.decision.recommended_action]
+                    {item.recommended_action
+                      ? recommendedActionLabel[
+                          item.recommended_action as keyof typeof recommendedActionLabel
+                        ]
                       : '—'}
                   </span>
                 </td>
@@ -1091,145 +1208,145 @@ function EvaluationsPage({ openCase }: { openCase: (item: Investigation) => void
 // Operação
 // --------------------------------------------------------------------------
 
-const providers = [
-  ['Gemini', '642 ms', '1.284', '0,3%'],
-  ['Groq', '511 ms', '846', '0,1%'],
-  ['API TRACTIAN', '186 ms', '2.341', '0,2%'],
-];
-
 function SystemHealth() {
-  return (
-    <div className="page">
-      <PageHead
-        eyebrow="Observabilidade"
-        title="Operação"
-        description="Indicadores dos provedores e da execução no ambiente piloto. Informação secundária em relação à investigação."
-      />
-      <div className="split split--8-4">
-        <Section n="01" title="Provedores" hint="Situação dos serviços de que a execução depende.">
-          <div className="table-wrap">
-            <table className="grid-table">
-              <thead>
-                <tr>
-                  <th scope="col">Serviço</th>
-                  <th scope="col">Situação</th>
-                  <th scope="col" className="num">
-                    Latência p50
-                  </th>
-                  <th scope="col" className="num">
-                    Chamadas 24 h
-                  </th>
-                  <th scope="col" className="num">
-                    Taxa de erro
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {providers.map(([name, latency, requests, errors]) => (
-                  <tr key={name}>
-                    <th scope="row">{name}</th>
-                    <td>
-                      <span className="mark mark--success">
-                        <span className="mark__glyph" aria-hidden="true" />
-                        Operacional
-                      </span>
-                    </td>
-                    <td className="num">{latency}</td>
-                    <td className="num">{requests}</td>
-                    <td className="num">{errors}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-
-        <Section n="02" title="Execução" hint="Últimas 24 horas.">
-          <dl className="runtime">
-            <div>
-              <dt>Chamadas de modelo</dt>
-              <dd>2.130</dd>
-            </div>
-            <div>
-              <dt>Consultas de leitura</dt>
-              <dd>2.341</dd>
-            </div>
-            <div>
-              <dt>Duração mediana</dt>
-              <dd>8,2 s</dd>
-            </div>
-            <div>
-              <dt>Eventos de limite de taxa</dt>
-              <dd>3</dd>
-            </div>
-          </dl>
-          <p className="footnote">
-            Telemetria simulada do piloto — não está conectada às APIs dos provedores.
-          </p>
-        </Section>
-      </div>
-    </div>
-  );
-}
-
-// --------------------------------------------------------------------------
-
-export default function Home() {
-  const [view, setView] = useState<AppView>('overview');
-  const [selected, setSelected] = useState<Investigation>();
-  const [evidence, setEvidence] = useState<EvidenceRecord>();
-  const [event, setEvent] = useState<TraceEvent>();
-  const [review, setReview] = useState<Investigation>();
-
-  const title = useMemo(() => viewLabel[view], [view]);
+  const [health, setHealth] = useState<Awaited<ReturnType<typeof api.health>> | null>(null);
+  const [error, setError] = useState<ApiError | null>(null);
 
   useEffect(() => {
     let active = true;
-    queueMicrotask(() => {
-      if (!active) return;
-      const params = new URLSearchParams(window.location.search);
-      const match = investigations.find((item) => item.case_id === params.get('case'));
-      const requestedView = params.get('view');
-      if (match) {
-        setSelected(match);
-        setView('investigation-detail');
-        if (params.get('review') === '1') setReview(match);
-      } else if (requestedView && (nav as string[]).includes(requestedView)) {
-        setView(requestedView as AppView);
-      }
-    });
+    api
+      .health()
+      .then((value) => active && setHealth(value))
+      .catch((exc) => active && setError(exc as ApiError));
     return () => {
       active = false;
     };
   }, []);
 
-  function openCase(item: Investigation) {
-    setSelected(item);
+  return (
+    <div className="page">
+      <PageHead
+        eyebrow="Observabilidade"
+        title="Operação"
+        description="Situação do serviço de investigação e da persistência. Informação secundária em relação à investigação."
+      />
+      {error ? (
+        <div className="notice notice--danger">
+          <p className="notice__title">Serviço indisponível</p>
+          <p>{error.message}</p>
+        </div>
+      ) : (
+        <dl className="runtime">
+          <div>
+            <dt>API</dt>
+            <dd>{health?.api ?? '—'}</dd>
+          </div>
+          <div>
+            <dt>Banco de dados</dt>
+            <dd>{health?.database ?? '—'}</dd>
+          </div>
+          <div>
+            <dt>Investigações em execução</dt>
+            <dd>{health?.running_investigations ?? 0}</dd>
+          </div>
+        </dl>
+      )}
+      <p className="footnote">
+        Execução em processo: adequada para demonstração e instância única. Um worker durável é
+        evolução futura, e a limitação está documentada em vez de disfarçada.
+      </p>
+    </div>
+  );
+}
+
+// --------------------------------------------------------------------------
+// Raiz
+// --------------------------------------------------------------------------
+
+function Console() {
+  const { summaries, loading, error, reload } = useConsole();
+  const [view, setView] = useState<AppView>('overview');
+  const [selectedId, setSelectedId] = useState<string>();
+  const [evidence, setEvidence] = useState<EvidenceRecord>();
+  const [event, setEvent] = useState<TraceEvent>();
+  const [reviewCase, setReviewCase] = useState<Investigation>();
+  const [creating, setCreating] = useState(false);
+
+  const { dossier, loading: loadingCase, error: caseError } = useDossier(
+    view === 'investigation-detail' ? selectedId : undefined,
+  );
+
+  const openCase = useCallback((caseId: string) => {
+    setSelectedId(caseId);
     setView('investigation-detail');
     window.scrollTo(0, 0);
-  }
+  }, []);
+
+  useEffect(() => {
+    // Sincroniza com a URL (sistema externo) uma única vez, fora do render.
+    const timer = setTimeout(() => {
+      const caseId = new URLSearchParams(window.location.search).get('case');
+      if (caseId) openCase(caseId);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [openCase]);
+
+  const queue = reviewQueueOf(summaries);
+  const title = useMemo(() => viewLabel[view], [view]);
+
+  if (error) return <ServiceDown error={error} retry={reload} />;
 
   return (
-    <Shell view={view} setView={setView}>
+    <Shell view={view} setView={setView} queueCount={queue.length}>
       <span className="sr-only" aria-live="polite">
         Seção atual: {title}
       </span>
-      {view === 'overview' && <Overview openCase={openCase} go={setView} />}
-      {view === 'investigations' && <InvestigationsPage openCase={openCase} />}
-      {view === 'human-review' && <HumanReviewPage openCase={openCase} openReview={setReview} />}
-      {view === 'evaluations' && <EvaluationsPage openCase={openCase} />}
+
+      {loading && summaries.length === 0 && <Loading label="Carregando investigações…" />}
+
+      {!loading && view === 'overview' && (
+        <Overview
+          summaries={summaries}
+          openCase={openCase}
+          go={setView}
+          onNew={() => setCreating(true)}
+        />
+      )}
+      {!loading && view === 'investigations' && (
+        <InvestigationsPage
+          summaries={summaries}
+          openCase={openCase}
+          onNew={() => setCreating(true)}
+        />
+      )}
+      {!loading && view === 'human-review' && (
+        <HumanReviewPage summaries={summaries} openCase={openCase} />
+      )}
+      {!loading && view === 'evaluations' && (
+        <EvaluationsPage summaries={summaries} openCase={openCase} />
+      )}
       {view === 'system-health' && <SystemHealth />}
-      {view === 'investigation-detail' && selected && (
+
+      {view === 'investigation-detail' && caseError && (
+        <ServiceDown error={caseError} retry={() => openCase(selectedId!)} />
+      )}
+      {view === 'investigation-detail' && !caseError && loadingCase && !dossier && (
+        <Loading label="Carregando o dossiê…" />
+      )}
+      {view === 'investigation-detail' && dossier && (
         <Dossier
-          item={selected}
+          item={dossier.investigation}
+          evaluation={dossier.evaluation}
+          running={dossier.running || !dossier.investigation.terminal_state}
           back={() => setView('investigations')}
           onEvidence={setEvidence}
           onTrace={setEvent}
-          openReview={() => setReview(selected)}
+          openReview={() => setReviewCase(dossier.investigation)}
         />
       )}
+
       <InspectionSheet
-        investigation={selected}
+        investigation={dossier?.investigation}
         evidence={evidence}
         event={event}
         close={() => {
@@ -1238,8 +1355,32 @@ export default function Home() {
         }}
         onOpenEvidence={setEvidence}
       />
-      <ReviewSheet item={review} close={() => setReview(undefined)} openCase={openCase} />
+      <ReviewSheet
+        item={reviewCase}
+        evaluation={dossier?.evaluation}
+        close={() => setReviewCase(undefined)}
+        openCase={() => reviewCase && openCase(reviewCase.case_id)}
+      />
+
+      {creating && (
+        <NewInvestigationForm
+          close={() => setCreating(false)}
+          onCreated={(caseId) => {
+            setCreating(false);
+            reload();
+            openCase(caseId);
+          }}
+        />
+      )}
     </Shell>
+  );
+}
+
+export default function Home() {
+  return (
+    <ConsoleProvider>
+      <Console />
+    </ConsoleProvider>
   );
 }
 

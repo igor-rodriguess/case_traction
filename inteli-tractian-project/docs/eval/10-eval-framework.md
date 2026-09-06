@@ -57,6 +57,21 @@ Não carrega raciocínio interno, credencial ou payload bruto de evidência. Das
 
 ## Primeira validação
 
-26 runs reais avaliadas offline, com Judges determinísticos derivados das regras do barema. Serve para validar o **contrato** do framework sem gastar chamada nem introduzir variância de LLM na primeira passagem. O artefato registra `judges: deterministic-rule-based` para que ninguém confunda isso com avaliação por modelo.
+O runner exige uma coorte explícita e nunca combina diretórios de `experiments/`
+silenciosamente. Isso preserva a separação entre versões de roteamento e torna a
+origem das métricas auditável no manifesto:
 
-Resultado: 22 `PASS`, 4 `PASS_WITH_WARNINGS`, concordância `HIGH` em 26/26, zero hard failures, média ponderada 3,36.
+```bash
+python -m scripts.run_eval --experiment e2e-full-dev-v2b
+```
+
+27 runs reais da coorte `e2e-full-dev-v2b` foram avaliadas offline, com Judges
+determinísticos derivados das regras do barema. Serve para validar o **contrato**
+do framework sem gastar chamada nem introduzir variância de LLM na primeira
+passagem. O artefato registra `judges: deterministic-rule-based` para que ninguém
+confunda isso com avaliação por modelo.
+
+Resultado: 23 `PASS`, 4 `PASS_WITH_WARNINGS`, concordância `HIGH` em 27/27,
+zero erros de avaliação, zero hard failures e média ponderada 3,3168. A política
+operacional derivou 23 `APPROVED_WITH_WARNINGS` e 4
+`HUMAN_REVIEW_REQUIRED`/`ENGINEERING_REVIEW`.

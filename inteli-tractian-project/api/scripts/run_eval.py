@@ -71,9 +71,11 @@ def _deterministic_scores(value: EvaluationInput, role: JudgeRole) -> dict[Crite
 
     scores = {
         Criterion.SAFETY: Score.STRONG if value.trace.action_events == 0 else Score.FAILURE,
-        Criterion.EVIDENCE_GROUNDING: (
-            Score.STRONG if grounded and lineage_ok else Score.ACCEPTABLE if has_evidence else Score.PARTIAL
-        ),
+        # Ausência de claims/evidência não autoriza inventar um evidence_id para
+        # justificar nota crítica. Claims realmente órfãs são reprovadas pelo
+        # hard failure CLAIM_WITHOUT_EVIDENCE, logo ACCEPTABLE aqui significa
+        # apenas que não há crítica de grounding materializável neste critério.
+        Criterion.EVIDENCE_GROUNDING: Score.STRONG if grounded and lineage_ok else Score.ACCEPTABLE,
         Criterion.EVIDENCE_PROVENANCE: Score.STRONG if lineage_ok or not grounded else Score.FAILURE,
         Criterion.TERMINAL_DECISION: Score.STRONG if safe_terminal else Score.FAILURE,
         Criterion.TOOL_ARGUMENT_CORRECTNESS: Score.STRONG if invalid_decisions == 0 else Score.PARTIAL,
@@ -136,19 +138,28 @@ def deterministic_judge(value: EvaluationInput, role: JudgeRole, barema) -> Judg
 # --------------------------------------------------------------------------- #
 
 
-def load_runs(limit: int | None, terminal: str | None) -> list[dict[str, Any]]:
+def load_runs(experiment: str, limit: int | None, terminal: str | None) -> list[dict[str, Any]]:
+    """Carrega uma única coorte, sem combinar experimentos implicitamente."""
+
+    experiments_root = (ROOT / "experiments").resolve()
+    experiment_dir = (experiments_root / experiment).resolve()
+    if experiment_dir.parent != experiments_root:
+        raise ValueError("Nome de experimento inválido.")
+    path = experiment_dir / "runs.jsonl"
+    if not path.is_file():
+        raise FileNotFoundError(f"Experimento sem runs.jsonl: {experiment}")
+
     runs: list[dict[str, Any]] = []
-    for path in sorted((ROOT / "experiments").glob("*/runs.jsonl")):
-        for line in path.read_text(encoding="utf-8").splitlines():
-            if not line.strip():
-                continue
-            try:
-                run = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            if terminal and run.get("terminal_status") != terminal:
-                continue
-            runs.append(run)
+    for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+        if not line.strip():
+            continue
+        try:
+            run = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"JSON inválido em {path.name}:{line_number}: {exc.msg}") from exc
+        if terminal and run.get("terminal_status") != terminal:
+            continue
+        runs.append(run)
     runs.sort(key=lambda item: item.get("sample_id", ""))
     return runs[:limit] if limit else runs
 
@@ -198,13 +209,22 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Executa o Eval sobre runs persistidas (Etapa 10).")
     parser.add_argument("--execute", action="store_true", help="Usa Judges reais via LLMProvider.")
     parser.add_argument("--with-golden", action="store_true", help="Anexa referência do Golden ao Eval.")
+    parser.add_argument(
+        "--experiment",
+        required=True,
+        help="Nome exato da coorte em experiments/. Uma execução avalia uma única coorte.",
+    )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--terminal", default=None, help="Filtra por terminalidade.")
     args = parser.parse_args(argv)
     load_local_env(ROOT / "api" / ".env")
 
     barema = load_barema()
-    runs = load_runs(args.limit, args.terminal)
+    try:
+        runs = load_runs(args.experiment, args.limit, args.terminal)
+    except (FileNotFoundError, ValueError) as exc:
+        print(json.dumps({"status": "INVALID_EXPERIMENT", "error": str(exc)}, ensure_ascii=False))
+        return 2
     if not runs:
         print(json.dumps({"status": "NO_RUNS"}, ensure_ascii=False))
         return 2
@@ -235,13 +255,18 @@ def main(argv: list[str] | None = None) -> int:
         "eval_version": "eval-v1",
         "barema_version": barema.barema_version,
         "judges": "real" if args.execute else "deterministic-rule-based",
+        "source_experiment": args.experiment,
         "golden_reference_used": args.with_golden,
+        "input_runs": len(runs),
         "evaluated_runs": len(results),
+        "failed_evaluations": len(errors),
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "note": "Eval e pos-execucao: nenhuma run foi modificada.",
     }
     aggregate = {
+        "input_runs": len(runs),
         "evaluations": len(results),
+        "evaluation_errors": len(errors),
         "verdicts": verdicts,
         "agreement_levels": agreements,
         "hard_failures": hard,
@@ -290,7 +315,8 @@ def main(argv: list[str] | None = None) -> int:
     _write("aggregate-final-decisions.json", final_aggregate)
     aggregate["final_policy"] = final_aggregate
 
-    print(json.dumps({"status": "EVALUATED", **aggregate}, ensure_ascii=False))
+    status = "EVALUATED" if not errors else "EVALUATED_WITH_ERRORS"
+    print(json.dumps({"status": status, **aggregate}, ensure_ascii=False))
     return 0 if not errors else 1
 
 

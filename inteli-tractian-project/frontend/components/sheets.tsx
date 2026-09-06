@@ -11,7 +11,7 @@ import type { EvidenceRecord, Investigation, TraceEvent } from '@/lib/investigat
 import { evidenceForEvent, plural } from '@/lib/case-facts';
 import { EvidenceMark, StateMark } from './indicators';
 import { DecisionFindings } from './evaluation';
-import { evaluationFor } from '@/lib/mock-evaluations';
+import type { Evaluation } from '@/lib/eval-types';
 import {
   finalVerdictDescription,
   formatDuration,
@@ -212,15 +212,16 @@ export function InspectionSheet({
 
 export function ReviewSheet({
   item,
+  evaluation,
   close,
   openCase,
 }: {
   item?: Investigation;
+  evaluation?: Evaluation;
   close: () => void;
   openCase: (item: Investigation) => void;
 }) {
   const handoff = item?.human_handoff;
-  const evaluation = item ? evaluationFor(item.case_id) : undefined;
   const blocked = evaluation?.decision.final_verdict === 'REJECTED';
 
   return (

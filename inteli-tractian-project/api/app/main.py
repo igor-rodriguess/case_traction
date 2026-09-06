@@ -29,6 +29,13 @@ app.add_middleware(
 )
 
 
+# Console de investigação sob /api/v1. A API industrial simulada segue na raiz;
+# as READ tools continuam consultando os mesmos caminhos de antes.
+from app.console_api import router as console_router  # noqa: E402
+
+app.include_router(console_router)
+
+
 # ---------------------------------------------------------------------------
 # Dependências
 # ---------------------------------------------------------------------------
@@ -390,6 +397,11 @@ def _require_justification(body: dict[str, Any]) -> None:
 
 @app.exception_handler(HTTPException)
 async def _http_handler(_: Request, exc: HTTPException) -> JSONResponse:
+    # O console já levanta um erro estruturado (`code`/`message`/`detail`).
+    # Quando ele chega assim, passa direto; embrulhar de novo aninharia a
+    # mensagem dentro de si mesma.
+    if isinstance(exc.detail, dict) and "code" in exc.detail:
+        return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
     return JSONResponse(
         status_code=exc.status_code,
         content={"code": _err_code(exc.status_code), "message": exc.detail},

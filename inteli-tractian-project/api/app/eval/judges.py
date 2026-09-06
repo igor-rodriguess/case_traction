@@ -107,7 +107,7 @@ def build_judge_request(role: JudgeRole, value: EvaluationInput, barema: Barema)
         expected_schema=JudgeResult.model_json_schema(),
         structured_output_mode=StructuredOutputMode.JSON_SCHEMA,
         max_output_tokens=JUDGE_MAX_TOKENS,
-        timeout_seconds=60,
+        timeout_seconds=150,
     )
 
 
