@@ -1,103 +1,183 @@
-# Challenge TRACTIAN × Inteli — Engenharia e Avaliação de Agentes Industriais
+# TRACTIAN AI Investigation Console
 
-Repositório com o material-base para construir e avaliar agentes de IA sobre uma API industrial. 
-O briefing completo está em [`STUDENT-GUIDE.md`](./STUDENT-GUIDE.md).
+Agente de investigação para monitoramento de condição industrial: recebe uma dúvida técnica,
+investiga consultando a API industrial **somente por leitura**, conclui apenas o que a evidência
+sustenta, e é avaliado por dois julgadores independentes antes de qualquer resultado ser tratado
+como resposta.
 
-> **Para começar:** rode `make setup && make up` e abra http://localhost:8000/docs. Veja também o
-> [`QUICKSTART.md`](./QUICKSTART.md) (30 segundos) e o briefing completo em
-> [`STUDENT-GUIDE.md`](./STUDENT-GUIDE.md).
+> O briefing original do desafio está em [`STUDENT-GUIDE.md`](./STUDENT-GUIDE.md) e o material-base
+> em [`docs/`](./docs/).
 
-## O que tem aqui
+## A ideia central
 
-| Artefato | Arquivo | Para quê |
-| :------- | :------ | :------- |
-| Guia do estudante | [`STUDENT-GUIDE.md`](./STUDENT-GUIDE.md) | Problema, solução esperada, entregáveis, método. **Comece por aqui.** |
-| Contrato da API | [`docs/api-contract.openapi.yaml`](./docs/api-contract.openapi.yaml) | OpenAPI 3.1 com 18 endpoints nas 7 categorias. |
-| Chamados | [`docs/support-tickets.md`](./docs/support-tickets.md) | 17 dúvidas reais de cliente e suporte. |
-| Cenários de teste | [`docs/test-scenarios.md`](./docs/test-scenarios.md) | 16 cenários no estilo TAU-bench. |
-| Schema de dados | [`docs/data-schema.md`](./docs/data-schema.md) | Tabelas parquet e comportamento probabilístico. |
-| Implementação da API | [`api/`](./api/) | FastAPI que serve o contrato, gerador de dados, testes. |
-| Dados sintéticos | [`data/`](./data/) | Arquivos parquet + `seed.json` que populam a API. Gerados por `make data`. |
-| Pacote do agente | [`agent-input/`](./agent-input/) | `cases.json` (mensagem + contexto) + contrato. O que o agente deve ver. |
-| Pacote de avaliação | [`eval/`](./eval/) | Gabarito: trajetórias esperadas, cenários, protocolo de avaliação, runner de exemplo. |
+O sistema não foi construído para acertar sempre. Foi construído para que **seja possível verificar
+se acertou** — e para parar quando não sabe.
 
-## Como os artefatos se conectam
-
-```
-Chamado de suporte (contexto)  ─►  Cenário de teste  ─►  Trajetória de chamadas à API  ─►  Resolução
-        ▲                           (TAU-bench)                       │
-        │                                                             ▼
-   dados sintéticos (parquet)  ◄──  populam  ────────────────────  API industrial (contrato OpenAPI)
+```text
+Solicitação
+  → Understanding      interpreta, extrai entidades, aponta o que falta
+  → Planner            define objetivos e capacidades de leitura autorizadas
+  → Investigator       escolhe a ferramenta (nunca executa)
+  → Tool Executor      executa e registra (o agente não escolhe o que é auditado)
+  → Trace + Evidence   trajetória e proveniência
+  → Completion Policy  decide de forma determinística se há evidência suficiente
+  → Conclusão          uma afirmação por evidência, montada do que foi observado
+  → Reporter           relatório técnico para engenharia
+  → Judge A + Judge B  avaliam contra um barema versionado
+  → Agreement          compara; arbitra uma vez se divergirem
+  → FinalEvaluationPolicy  produz a decisão operacional
 ```
 
-Cada chamado tem um ativo cujos dados sustentam a pergunta; a API é desenhada para responder a
-essas perguntas; os cenários traduzem um chamado em sequência de chamadas e na resolução esperada.
+Quatro garantias que não dependem do modelo se comportar bem:
 
-## Conceitos de domínio essenciais
+- **Nenhuma ação de escrita é possível.** Só existem READ tools no registry.
+- **Proveniência é chave estrangeira, não convenção.** Evidência sem evento de trajetória
+  correspondente é recusada pelo banco.
+- **O agente não decide se foi aprovado.** Quem avalia é o Eval; quem resolve é a política final.
+- **Raciocínio interno não é persistido.** Só metadado operacional entra na trajetória.
 
-- **Baseline** — estado normal aprendido do próprio ativo/ponto. Ciclo de vida: `learning →
-  established → invalidated`. O limiar de alarme de RMS **deriva do baseline** (referência +
-  tolerância), não de norma ISO nem de tabela por classe de máquina.
-- **Dois modos de detecção de falha:**
-  - `baseline` — por desvio (desbalanceamento, desalinhamento, rolamento, elétrica). Exige baseline
-    `established`.
-  - `symptom` — sintomática (lubrificação): a presença do sintoma já indica a falha, independente
-    de baseline.
-- **Insight / análise** — diagnóstico automático do modelo, com tipo, severidade, confiança,
-  evidência, limitações e `detection_mode`.
-- **Qualidade e frescor dos dados** — completude, relação sinal-ruído, atualidade. Afetam a
-  capacidade do modelo de inferir e a confiabilidade do baseline. Compare com os `requirements` do
-  modelo.
-- **Decisão do agente** — **orientar** / **agir** / **escalar** (encaminhar para humano quando o
-  caso extrapola o remoto).
+## Estrutura
 
-## O projeto — como trabalhar
+| Pasta | O que é |
+| :--- | :--- |
+| `api/app/agents`, `intelligence`, `investigation` | Agentes e contratos Pydantic |
+| `api/app/tools` | READ tools e registry autorizado |
+| `api/app/observability` | Trace, Evidence Ledger, executor instrumentado |
+| `api/app/eval` | Barema, Judges, concordância, arbitragem, política final |
+| `api/app/application` | Pipeline real e serviço de ciclo de vida |
+| `api/app/persistence` | Repositório e persistência progressiva |
+| `api/app/console_api.py` | API do console, sob `/api/v1` |
+| `api/app/main.py` | API industrial simulada (a fonte que as tools consultam) |
+| `frontend/` | Console em vinext + React + TypeScript |
+| `supabase/migrations/` | Schema versionado |
+| `docs/architecture`, `docs/eval`, `docs/frontend` | Decisões e validações de cada etapa |
 
-O projeto unifica **construção e avaliação de agente**: o estudante constrói o agente (tools, MCP ou
-equivalente), testa-o contra os tickets e, em seguida, avalia sua qualidade e confiabilidade usando
-os cenários e o gabarito.
+## Como rodar
 
-1. **Explore o espaço do problema** — leia os [chamados](./docs/support-tickets.md) e o [contrato
-  da API](./docs/api-contract.openapi.yaml); suba a API (`make up`); explore o Swagger
-  (`:8000/docs`, com `seed=complete`).
-2. **Construa o agente** — conecte-se à API, investigue antes de responder, trate retornos
-  incompletos com honestidade, decida entre orientar/agir/escalar. Teste nos tickets de
-  `agent-input/cases.json`.
-3. **Avalie o agente** — use os [cenários](./docs/test-scenarios.md) como itens de benchmark.
-  Rode o agente isolado do gabarito, capture o trace e aplique os critérios em `eval/` após a
-  execução (asserts + rubrica). Veja `eval/README-eval.md`.
-4. **Registre e demonstre** — formule uma hipótese (de arquitetura ou de comportamento), justifique
-  o método, apresente resultados e limitações.
+Requisitos: Python 3.10+, Node 22+, e um projeto Supabase.
 
-## Separação entre o agente e a avaliação
-
-| Pacote | Local | Para quem | Conteúdo |
-| :----- | :---- | :-------- | :------- |
-| Input do agente | `agent-input/` | Agente | `cases.json` (mensagem + contexto), `api-contract.openapi.yaml` |
-| Gabarito | `eval/` | Avaliação | `expected-paths.json`, `test-scenarios.md`, `README-eval.md` |
-
-> **Atenção:** o agente não deve ter acesso ao gabarito (`eval/`, `docs/test-scenarios.md`,
-> `data/cases.parquet`). Com acesso à resposta, ele deixa de raciocinar — a avaliação se torna
-> inválida. O gabarito é aplicado **após** a execução, sobre o trace do agente.
-
-## Executar localmente
-
-Precisa de **Python ≥ 3.10** e **`uv`** ([instalação do uv](https://docs.astral.sh/uv/)).
+### 1. Configurar o ambiente
 
 ```bash
-make setup   # 1x: cria venv, instala deps e gera os dados (data/, agent-input/, eval/)
-make up      # sobe a API em http://localhost:8000 (Swagger UI em /docs)
-make stop    # para a API
-make test    # roda os testes automatizados
+cp api/.env.example api/.env
 ```
 
-Use **`seed=complete`** na query string para ver respostas completas durante a exploração; omita o
-`seed` para observar o comportamento probabilístico. Ativos com override de cenário fixo (ex.: G501 com
-`rms=unavailable`) mantêm o comportamento do cenário mesmo com `seed=complete`.
+Preencha em `api/.env`:
 
-Para endpoints de ação, envie o header `x-user-id` (define perfil/permissões). Os usuários estão em
-`data/users.parquet` e nos `cases.json` do `agent-input/`.
+| Variável | Para quê |
+| :--- | :--- |
+| `GROQ_API_KEY`, `GEMINI_API_KEY` | Provedores dos agentes |
+| `GROQ_INVESTIGATOR_MODEL`, `GEMINI_UNDERSTANDING_MODEL`, `GEMINI_PLANNER_MODEL` | Modelos por papel |
+| `SUPABASE_DB_URL` | Conexão PostgreSQL usada pela persistência |
+| `JUDGE_A_PROVIDER`, `JUDGE_B_PROVIDER` | Provedores dos avaliadores (opcional) |
 
-## Escala do material
+`api/.env` não é versionado. Nenhuma credencial vai para o frontend: ele fala com a API, nunca com
+o banco.
 
-8 empresas, 26 ativos, 24 análises, 17 chamados, 16 cenários. 
+### 2. Instalar e aplicar a migration
+
+```bash
+cd api && python -m venv .venv && .venv/bin/pip install -e ".[dev]" psycopg[binary] python-dotenv
+cd .. && python api/scripts/apply_migrations.py
+python api/scripts/verify_schema.py     # confere o banco real, não o exit code
+```
+
+`verify_schema.py` existe porque migration retornando zero não prova nada: ele lê o catálogo do
+Postgres e falha se faltar tabela, constraint, RLS ou policy.
+
+### 3. Subir o backend
+
+```bash
+cd api && .venv/bin/python -m uvicorn app.main:app --port 8000
+```
+
+Duas superfícies no mesmo processo: a API industrial simulada na raiz (`/assets`, `/analyses`, …),
+que é o que as tools consultam, e o console em `/api/v1`.
+
+```bash
+curl http://127.0.0.1:8000/api/v1/health
+# {"api":"healthy","database":"connected", ...}
+```
+
+### 4. Subir o frontend
+
+```bash
+cd frontend && npm install && npm run dev
+```
+
+Abra <http://localhost:3000>. Se a API estiver fora do ar, a interface diz isso — não existe queda
+para dados falsos.
+
+### 5. Criar uma investigação
+
+Pela interface: **Nova investigação** → descreva a dúvida → **Iniciar investigação**.
+
+O `POST` responde `202` com o identificador e a execução segue em segundo plano; a página acompanha
+por polling e para quando o caso chega a um desfecho. A fase mostrada é a que o backend registrou —
+nenhum percentual é inventado.
+
+Pela API:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/investigations \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Qual o contexto atual do ativo asset_C710 e o que o RMS mostra?"}'
+```
+
+## Endpoints do console
+
+```text
+POST /api/v1/investigations              cria e inicia          → 202
+GET  /api/v1/investigations              lista
+GET  /api/v1/investigations/{id}         dossiê consolidado
+GET  /api/v1/investigations/{id}/trace
+GET  /api/v1/investigations/{id}/evidence
+GET  /api/v1/investigations/{id}/evaluation
+GET  /api/v1/investigations/{id}/human-review
+GET  /api/v1/review-queue
+GET  /api/v1/health
+```
+
+## Persistência progressiva
+
+Gravar tudo numa transação só protegia a integridade, mas tornava a execução invisível até o fim —
+e uma falha tardia apagaria a trajetória já vivida. A atomicidade mudou de granularidade sem
+afrouxar nada: cada checkpoint é uma transação que fecha uma unidade que faz sentido sozinha.
+
+```text
+solicitação recebida     run                                  commit
+entendimento concluído   run + eventos                        commit
+plano criado             run + eventos                        commit
+consulta executada       evento + evidências que ela gerou    commit
+conclusão produzida      conclusão + afirmações + vínculos    commit
+relatório gerado         relatório                            commit
+avaliação concluída      decisão + avaliadores + divergências commit
+```
+
+A evidência nasce no mesmo commit do evento que a originou, então a chave estrangeira composta que
+garante a proveniência nunca fica pendurada. Uma investigação interrompida no meio é um registro de
+auditoria válido, não lixo.
+
+## Verificação
+
+```bash
+cd api && .venv/bin/python -m pytest -q        # 499 testes
+cd frontend && npm run typecheck && npm run lint && npm run build
+python api/scripts/run_console_e2e.py          # E2E real, sem Golden e sem mock
+```
+
+`run_console_e2e.py` executa uma investigação de verdade e depois audita o banco: compara chamadas
+de ferramenta executadas contra persistidas, e verifica órfãos e lineage.
+
+## Limitações conhecidas
+
+1. **Execução in-process.** Adequada para demonstração e instância única. Se o processo reiniciar no
+   meio, o que já foi persistido permanece e o caso fica sem estado terminal — visivelmente. Um
+   worker durável é evolução futura.
+2. **Avaliação sujeita a timeout do provedor.** A entrada dos Judges é grande; em execuções longas o
+   Eval pode não completar. O caso fica registrado sem avaliação, e a interface mostra isso.
+3. **Atribuição de revisor não existe.** Não há workflow de posse no backend, e a interface não
+   simula um.
+4. **Golden set nunca executado em runtime.** É referência de avaliação, isolada por guarda
+   explícita.
+5. **Mobile não é prioridade.** Abaixo de 1024 px o layout degrada, mas não quebra.
