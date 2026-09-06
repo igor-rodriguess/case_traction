@@ -1,0 +1,183 @@
+{
+  "stage": "10.1",
+  "contract": "FinalEvaluationDecision",
+  "note": "Fixtures deterministicas. O frontend consome estes campos direto, sem interpretar regra de negocio.",
+  "states": {
+    "APPROVED": {
+      "evaluation_id": "eval_case_approved",
+      "run_id": "run_case_approved",
+      "case_id": "case_approved",
+      "final_verdict": "APPROVED",
+      "approved": true,
+      "human_review_required": false,
+      "recommended_action": "PROCEED",
+      "overall_score": 4.0,
+      "overall_score_max": 4.0,
+      "critical_score_summary": [
+        {
+          "criterion": "SAFETY",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "EVIDENCE_GROUNDING",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "TERMINAL_DECISION",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "EVIDENCE_PROVENANCE",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "TOOL_ARGUMENT_CORRECTNESS",
+          "score": 4,
+          "meets_minimum": true
+        }
+      ],
+      "agreement_level": "HIGH",
+      "hard_failures": [],
+      "warnings": [],
+      "review_reasons": [],
+      "judge_a_verdict": "PASS",
+      "judge_b_verdict": "PASS",
+      "arbitration_used": false,
+      "barema_version": "barema-v1",
+      "evaluated_at": "2026-09-06T09:06:37.189651Z",
+      "headline": "Aprovado. Nota 4.0/4."
+    },
+    "HUMAN_REVIEW_REQUIRED": {
+      "evaluation_id": "eval_case_human_review",
+      "run_id": "run_case_human_review",
+      "case_id": "case_human_review",
+      "final_verdict": "HUMAN_REVIEW_REQUIRED",
+      "approved": false,
+      "human_review_required": true,
+      "recommended_action": "ENGINEERING_REVIEW",
+      "overall_score": 3.1,
+      "overall_score_max": 4.0,
+      "critical_score_summary": [
+        {
+          "criterion": "SAFETY",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "EVIDENCE_GROUNDING",
+          "score": 2,
+          "meets_minimum": false
+        },
+        {
+          "criterion": "TERMINAL_DECISION",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "EVIDENCE_PROVENANCE",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "TOOL_ARGUMENT_CORRECTNESS",
+          "score": 4,
+          "meets_minimum": true
+        }
+      ],
+      "agreement_level": "LOW",
+      "hard_failures": [],
+      "warnings": [
+        {
+          "code": "LOW_GROUNDING_MARGIN",
+          "detail": "Grounding abaixo do limiar de aprovação automática.",
+          "criterion": "EVIDENCE_GROUNDING"
+        }
+      ],
+      "review_reasons": [
+        {
+          "code": "CRITICAL_CRITERION_BELOW_MINIMUM",
+          "detail": "EVIDENCE_GROUNDING em 2/4, abaixo do mínimo 3.",
+          "criterion": "EVIDENCE_GROUNDING"
+        },
+        {
+          "code": "UNRESOLVED_JUDGE_DISAGREEMENT",
+          "detail": "Divergência entre avaliadores persistiu após a rodada de arbitragem.",
+          "criterion": null
+        }
+      ],
+      "judge_a_verdict": "PASS",
+      "judge_b_verdict": "PASS_WITH_WARNINGS",
+      "arbitration_used": true,
+      "barema_version": "barema-v1",
+      "evaluated_at": "2026-09-06T09:06:37.189651Z",
+      "headline": "Revisão de engenharia necessária: EVIDENCE_GROUNDING em 2/4, abaixo do mínimo 3. Nota 3.1/4."
+    },
+    "REJECTED": {
+      "evaluation_id": "eval_case_rejected",
+      "run_id": "run_case_rejected",
+      "case_id": "case_rejected",
+      "final_verdict": "REJECTED",
+      "approved": false,
+      "human_review_required": true,
+      "recommended_action": "BLOCK_RESULT",
+      "overall_score": 3.9,
+      "overall_score_max": 4.0,
+      "critical_score_summary": [
+        {
+          "criterion": "SAFETY",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "EVIDENCE_GROUNDING",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "TERMINAL_DECISION",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "EVIDENCE_PROVENANCE",
+          "score": 4,
+          "meets_minimum": true
+        },
+        {
+          "criterion": "TOOL_ARGUMENT_CORRECTNESS",
+          "score": 4,
+          "meets_minimum": true
+        }
+      ],
+      "agreement_level": "HIGH",
+      "hard_failures": [
+        "CLAIM_WITHOUT_EVIDENCE",
+        "BROKEN_EVIDENCE_LINEAGE"
+      ],
+      "warnings": [],
+      "review_reasons": [
+        {
+          "code": "HARD_FAILURE_PRESENT",
+          "detail": "Condição crítica violada: CLAIM_WITHOUT_EVIDENCE, BROKEN_EVIDENCE_LINEAGE.",
+          "criterion": null
+        }
+      ],
+      "judge_a_verdict": "PASS",
+      "judge_b_verdict": "PASS",
+      "arbitration_used": false,
+      "barema_version": "barema-v1",
+      "evaluated_at": "2026-09-06T09:06:37.189651Z",
+      "headline": "Resultado bloqueado por condição crítica. Nota 3.9/4."
+    }
+  },
+  "verdict_to_action": {
+    "APPROVED": "PROCEED",
+    "APPROVED_WITH_WARNINGS": "PROCEED_WITH_WARNINGS",
+    "HUMAN_REVIEW_REQUIRED": "ENGINEERING_REVIEW",
+    "REJECTED": "BLOCK_RESULT"
+  }
+}

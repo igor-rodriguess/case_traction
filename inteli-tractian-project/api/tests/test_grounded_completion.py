@@ -110,3 +110,43 @@ def test_run_timing_is_derived_from_timezone_aware_timestamps() -> None:
 def test_tool_trace_event_cannot_omit_operation_metadata() -> None:
     with pytest.raises(ValueError, match="metadados completos"):
         TraceEvent(trace_id="trace", call_id="call", sequence=1, event_type=TraceEventType.TOOL_STARTED, timestamp=datetime.now(timezone.utc))
+
+
+
+def test_rewritten_claim_is_not_labelled_as_fabrication() -> None:
+    """Achado da revisão final: o provider devolveu a mesma claim sem acentos.
+
+    O relatório continua rejeitado — a validação não foi relaxada —, mas chamar
+    reescrita de `UNSUPPORTED_CLAIM` sugeria invenção de fato onde não houve.
+    """
+
+    _, state = grounded_state()
+    conclusion = build_grounded_conclusion(state)
+    evidence, trace = _summaries(state)
+    value = ReporterInput(case_id=state.case_id, trace_id=state.trace_id, understanding=state.understanding, plan=state.plan, conclusion=conclusion, evidence=evidence, trace=trace)
+    original = conclusion.claims[0]
+    rewritten = original.model_copy(update={"statement": original.statement.replace("á", "a").replace("é", "e")})
+    output = ReporterOutput(report_id="rewritten", case_id=state.case_id, executive_summary="Texto reescrito.", investigation_performed=("Consulta.",), findings=(rewritten.statement,), claims=(rewritten,), evidence_references=conclusion.supporting_evidence_ids, limitations=conclusion.limitations, missing_information=conclusion.unresolved_points, trace_id=state.trace_id)
+
+    result = validate_reporter_output(value, output)
+
+    assert result.valid is False, "relatório infiel continua rejeitado"
+    assert result.altered_claims == 1
+    assert result.fabricated_claims == 0
+    assert "CLAIM_TEXT_ALTERED" in result.violations
+    assert "UNSUPPORTED_CLAIM" not in result.violations
+
+
+def test_a_claim_absent_from_the_conclusion_is_still_fabrication() -> None:
+    _, state = grounded_state()
+    conclusion = build_grounded_conclusion(state)
+    evidence, trace = _summaries(state)
+    value = ReporterInput(case_id=state.case_id, trace_id=state.trace_id, understanding=state.understanding, plan=state.plan, conclusion=conclusion, evidence=evidence, trace=trace)
+    invented = Claim(claim_id="claim_inventada", statement="Fato que a conclusão nunca produziu.", supporting_evidence_ids=conclusion.supporting_evidence_ids)
+    output = ReporterOutput(report_id="fabricated", case_id=state.case_id, executive_summary="Inválido.", investigation_performed=("Consulta.",), findings=("Inválido.",), claims=(*conclusion.claims, invented), evidence_references=conclusion.supporting_evidence_ids, trace_id=state.trace_id)
+
+    result = validate_reporter_output(value, output)
+
+    assert result.valid is False
+    assert result.fabricated_claims == 1
+    assert "UNSUPPORTED_CLAIM" in result.violations

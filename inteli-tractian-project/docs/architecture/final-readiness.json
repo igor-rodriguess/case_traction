@@ -1,0 +1,137 @@
+{
+  "repository": {
+    "commits_sequencia_09": 4,
+    "env_versionado": false,
+    "segredos_no_historico": 0,
+    "venv_rastreado_hoje": 0,
+    "venv_em_commits_antigos": [
+      "60041c5",
+      "a985776"
+    ],
+    "nao_rastreado": [
+      "frontend/",
+      "docs/frontend/"
+    ],
+    "commit_recomendado": "separado por responsabilidade"
+  },
+  "tests": {
+    "passed": 421,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": 1,
+    "offline": true
+  },
+  "understanding": {
+    "accuracy": 0.9,
+    "accuracy_antes_calibracao": 0.661,
+    "per_class": {
+      "investigate": {
+        "n": 25,
+        "recall": 1.0,
+        "precision": 0.89
+      },
+      "contextualize": {
+        "n": 15,
+        "recall": 0.93,
+        "precision": 1.0
+      },
+      "execute": {
+        "n": 13,
+        "recall": 0.92,
+        "precision": 1.0
+      },
+      "mixed": {
+        "n": 4,
+        "recall": 0.75,
+        "precision": 0.5
+      },
+      "unclear": {
+        "n": 3,
+        "recall": 0.0,
+        "precision": null
+      }
+    },
+    "unclear_classificacao": "KNOWN_LIMITATION",
+    "unclear_efeito_no_fluxo": "nenhum: 3/3 terminaram em AWAITING_REQUIRED_INFORMATION"
+  },
+  "planner": {
+    "schema_valid_rate_v2": 1.0,
+    "truncamentos": 0,
+    "classificacao": "ACCEPTABLE_FOR_MVP"
+  },
+  "investigator": {
+    "first_pass_valid_rate": 1.0,
+    "argumentos_temporais_inventados": 0,
+    "action": 0,
+    "classificacao": "ACCEPTABLE_FOR_MVP"
+  },
+  "grounding": {
+    "tools_com_evidencia": 10,
+    "tools_materializaveis": 2,
+    "materializaveis": [
+      "get_asset",
+      "get_analysis"
+    ],
+    "grounded_completions_dev": 2,
+    "falhas_nao_materializaveis": 3,
+    "motivo": "ausencia de mapper, em parte deliberada: as demais exigiriam julgamento diagnostico",
+    "classificacao": "KNOWN_LIMITATION"
+  },
+  "reporter": {
+    "caso_auditado": "syn_u_dev_0044",
+    "inventou_fato": false,
+    "causa_real": "perda de acentos no enunciado, ids e evidence refs preservados",
+    "correcao": "violacao separada em UNSUPPORTED_CLAIM (fabricacao) e CLAIM_TEXT_ALTERED (reescrita)",
+    "validacao_relaxada": false,
+    "classificacao": "SHOULD_FIX_corrigido"
+  },
+  "trace": {
+    "runs_inspecionados": 162,
+    "trace_id_inconsistente": 0,
+    "chain_of_thought_persistido": 0
+  },
+  "evidence_ledger": {
+    "records": 196,
+    "orfaos": 0,
+    "sem_source_call_id": 0
+  },
+  "frontend": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "mocks_refletem_contratos": true,
+    "integracao_viva": false,
+    "classificacao": "READY_WITH_MOCK_DATA"
+  },
+  "security": {
+    "secrets_no_git": 0,
+    "action_execution": 0,
+    "headers_arbitrarios": 0,
+    "identidade_arbitraria": 0,
+    "expected_paths_em_runtime": false,
+    "train_holdout_golden_em_prompt": false
+  },
+  "judges_eval": {
+    "exigido_pelo_case": false,
+    "classificacao": "POST_MVP"
+  },
+  "holdout_golden": {
+    "dev": "60/60 coberto",
+    "holdout": "limpo",
+    "golden": "limpo",
+    "exigido_formalmente": false,
+    "recomendacao": "validacao futura, uma unica vez"
+  },
+  "known_limitations": [
+    "unclear com recall 0,00 (3 casos), sem efeito no comportamento",
+    "grounding materializa 2 das 10 READ tools",
+    "0/60 casos totalmente alinhados com a API; nenhum descritor corroborado",
+    "nenhuma READ aceita recorte temporal, com 52/60 casos pedindo",
+    "frontend com dados mockados, sem integracao viva",
+    ".venv em dois commits antigos do historico",
+    "latencia dependente do Gemini, com 503 e picos acima de 90 s"
+  ],
+  "blockers": [],
+  "should_fix": [],
+  "final_status": "READY_TO_FINALIZE"
+}

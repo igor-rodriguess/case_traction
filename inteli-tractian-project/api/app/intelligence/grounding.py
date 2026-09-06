@@ -28,6 +28,12 @@ class ClaimLineage(GroundingModel):
 class ReporterValidationResult(GroundingModel):
     valid: bool
     schema_valid: bool = True
+    fabricated_claims: int = 0
+    """Claims com id ausente da conclusao: invencao de fato."""
+
+    altered_claims: int = 0
+    """Claims de id conhecido com texto reescrito: infidelidade, nao invencao."""
+
     claim_preservation_rate: float = Field(ge=0, le=1)
     evidence_reference_preservation_rate: float = Field(ge=0, le=1)
     unsupported_claim_rate: float = Field(ge=0, le=1)
@@ -95,7 +101,16 @@ def validate_reporter_output(value: ReporterInput, output: ReporterOutput) -> Re
     expected_claims = {claim.claim_id: claim for claim in value.conclusion.claims}
     actual_claims = {claim.claim_id: claim for claim in output.claims}
     preserved = sum(actual_claims.get(key) == claim for key, claim in expected_claims.items())
-    unsupported = sum(key not in expected_claims or expected_claims.get(key) != claim for key, claim in actual_claims.items())
+    # Uma claim cujo id nao existe na conclusao e fabricacao. Uma claim com id
+    # conhecido mas texto alterado e outra coisa: o relatorio continua invalido,
+    # porem chamar as duas de UNSUPPORTED_CLAIM sugere invencao de fato onde
+    # houve apenas reescrita — foi o que aconteceu quando o provider devolveu o
+    # mesmo enunciado sem acentos.
+    fabricated = sum(1 for key in actual_claims if key not in expected_claims)
+    altered = sum(
+        1 for key, claim in actual_claims.items() if key in expected_claims and expected_claims[key] != claim
+    )
+    unsupported = fabricated + altered
     expected_evidence = set(value.conclusion.supporting_evidence_ids) | set(value.conclusion.contradictory_evidence_ids)
     preserved_evidence = len(expected_evidence & set(output.evidence_references))
     claim_rate = preserved / len(expected_claims) if expected_claims else 1.0
@@ -106,9 +121,11 @@ def validate_reporter_output(value: ReporterInput, output: ReporterOutput) -> Re
     target_ok = output.audience == "tractian_engineering_team"
     violations: list[str] = []
     if claim_rate < 1: violations.append("CLAIM_NOT_PRESERVED")
-    if unsupported_rate > 0: violations.append("UNSUPPORTED_CLAIM")
+    if fabricated: violations.append("UNSUPPORTED_CLAIM")
+    if altered: violations.append("CLAIM_TEXT_ALTERED")
     if evidence_rate < 1: violations.append("EVIDENCE_REFERENCE_NOT_PRESERVED")
     if not limitations_ok: violations.append("LIMITATION_NOT_PRESERVED")
     if not unresolved_ok: violations.append("UNRESOLVED_POINT_NOT_PRESERVED")
     if not target_ok: violations.append("INVALID_TARGET")
-    return ReporterValidationResult(valid=not violations, claim_preservation_rate=claim_rate, evidence_reference_preservation_rate=evidence_rate, unsupported_claim_rate=unsupported_rate, limitations_preserved=limitations_ok, unresolved_points_preserved=unresolved_ok, target_valid=target_ok, violations=tuple(violations))
+    return ReporterValidationResult(valid=not violations, fabricated_claims=fabricated, altered_claims=altered,
+        claim_preservation_rate=claim_rate, evidence_reference_preservation_rate=evidence_rate, unsupported_claim_rate=unsupported_rate, limitations_preserved=limitations_ok, unresolved_points_preserved=unresolved_ok, target_valid=target_ok, violations=tuple(violations))
