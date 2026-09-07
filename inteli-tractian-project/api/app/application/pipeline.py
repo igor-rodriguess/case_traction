@@ -15,6 +15,7 @@ Investigator, a aceitação é da Completion Policy, o veredicto é do Eval.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
 from time import perf_counter
 from typing import Any, Callable, Mapping, Protocol
@@ -95,14 +96,38 @@ class PipelineResult:
     tool_calls_executed: int = 0
 
 
+def _role_provider(role: str, default: ProviderName) -> ProviderName:
+    """Roteamento por papel, sobrescrevível por ambiente.
+
+    O projeto já trata roteamento como configuração versionada (MODEL_ROUTING_*).
+    Poder trocar o provedor de um papel sem editar código é o que permite seguir
+    quando um provedor entra em rate limit — sem mexer na arquitetura.
+    """
+    value = os.getenv(f"{role.upper()}_PROVIDER")
+    if not value:
+        return default
+    try:
+        return ProviderName(value.strip().lower())
+    except ValueError:
+        return default
+
+
 @dataclass
 class PipelineConfig:
     """Provedores por papel. Espelha o roteamento já calibrado do projeto."""
 
-    understanding: ProviderName = ProviderName.GROQ
-    planner: ProviderName = ProviderName.GEMINI
-    investigator: ProviderName = ProviderName.GEMINI
-    reporter: ProviderName = ProviderName.GEMINI
+    understanding: ProviderName = field(
+        default_factory=lambda: _role_provider("understanding", ProviderName.GROQ)
+    )
+    planner: ProviderName = field(
+        default_factory=lambda: _role_provider("planner", ProviderName.GEMINI)
+    )
+    investigator: ProviderName = field(
+        default_factory=lambda: _role_provider("investigator", ProviderName.GEMINI)
+    )
+    reporter: ProviderName = field(
+        default_factory=lambda: _role_provider("reporter", ProviderName.GEMINI)
+    )
     api_base_url: str = "http://127.0.0.1:8000"
 
 
@@ -480,7 +505,7 @@ def run_pipeline(
                         "app.intelligence", fromlist=["ReporterOutput"]
                     ).ReporterOutput.model_json_schema(),
                     prompt_version="console_reporter_v1",
-                    max_tokens=1200,
+                    max_tokens=4096,
                 )
             )
             state = attach_technical_report(

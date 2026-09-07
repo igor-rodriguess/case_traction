@@ -168,6 +168,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="E2E real do console de investigação.")
     parser.add_argument("--message", default=DEFAULT_MESSAGE)
     parser.add_argument("--safe", action="store_true", help="usa a solicitação ambígua")
+    parser.add_argument("--asset", default=None, help="ativo já conhecido pelo contexto")
     parser.add_argument("--no-eval", action="store_true", help="não roda a avaliação")
     parser.add_argument("--output", default=None)
     args = parser.parse_args(argv)
@@ -180,7 +181,13 @@ def main(argv: list[str] | None = None) -> int:
             config=PipelineConfig(api_base_url=server.base_url),
             evaluate=not args.no_eval,
         )
-        request = NewInvestigation(message=message, tenant_ref="company_alpha")
+        # O ativo entra pelo contexto disponível, não pelo texto: é assim que o
+        # Understanding sabe que não precisa perguntar quem é o ativo.
+        request = NewInvestigation(
+            message=message,
+            tenant_ref="company_alpha",
+            asset_refs=(args.asset,) if args.asset else (),
+        )
 
         created = service.create(request)
         print(f"case_id            = {created.case_id}")

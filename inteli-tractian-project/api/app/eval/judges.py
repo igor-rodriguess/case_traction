@@ -76,9 +76,14 @@ def judge_provider_config(role: JudgeRole) -> ProviderConfig:
     provider_name = os.getenv(f"{prefix}_PROVIDER") or "gemini"
     model = os.getenv(f"{prefix}_MODEL")
     config = default_provider_configs()[ProviderName(provider_name)]
+    # O provedor aplica `min(request, config)` no limite de saída. Sem elevar o
+    # teto aqui, a resposta do Judge é cortada no meio do JSON e volta como
+    # falha de provider — o mesmo tipo de truncamento silencioso que derrubou
+    # cinco casos na Etapa 09.6.
+    update: dict[str, object] = {"max_output_tokens": max(config.max_output_tokens, JUDGE_MAX_TOKENS)}
     if model:
-        config = config.model_copy(update={"model": model, "enabled": True})
-    return config
+        update.update({"model": model, "enabled": True})
+    return config.model_copy(update=update)
 
 
 def build_judge_prompt(role: JudgeRole, barema: Barema) -> str:
@@ -126,7 +131,11 @@ def parse_judge_result(response, role: JudgeRole) -> JudgeResult:
             raise JudgeOutputError(f"{role.value}: JSON inválido.") from exc
     if not isinstance(raw, dict):
         raise JudgeOutputError(f"{role.value}: esperado objeto JSON.")
-    raw.setdefault("judge_id", role.value)
+    # A identidade do avaliador é atribuída pelo framework, nunca declarada por
+    # ele: com `setdefault`, um `judge_id` vindo no JSON do modelo sobrescrevia o
+    # papel real e quebrava a gravação — além de permitir que um Judge se
+    # apresentasse como o outro.
+    raw["judge_id"] = role.value
     raw["provider"] = response.provider
     raw["model"] = response.model
     try:

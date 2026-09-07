@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { investigations } from '../lib/mock-investigations.ts';
+import { investigations } from './fixtures/mock-investigations.ts';
 
 const terminalStates = new Set(['GROUNDED_COMPLETION', 'SAFE_ESCALATION', 'AWAITING_REQUIRED_INFORMATION', 'FAILED']);
 const evidenceStatuses = new Set(['complete', 'partial', 'inconclusive', 'conflict', 'unavailable']);
